@@ -10,6 +10,14 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
+// DisableChainletStackVersion disables a specified version of a chainlet stack.
+// Note that the version is not immediately replaced by another one. The upgrade
+// can occur in one of two ways:
+//   - Manually, using the UpdateChainletStack method, or
+//   - Automatically during the next BeginBlock execution if chainlet auto upgrade is enabled.
+//
+// Returns a MsgDisableChainletStackVersionResponse and emits an event indicating
+// that the version has been disabled.
 func (k msgServer) DisableChainletStackVersion(goCtx context.Context, msg *types.MsgDisableChainletStackVersion) (resp *types.MsgDisableChainletStackVersionResponse, err error) {
 	err = msg.ValidateBasic()
 	if err != nil {

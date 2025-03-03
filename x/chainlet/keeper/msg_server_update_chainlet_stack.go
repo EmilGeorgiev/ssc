@@ -9,6 +9,9 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
+// UpdateChainletStack processes a message to update a chainlet stack with a new version.
+//
+// Returns a MsgUpdateChainletStackResponse if successful, or an error if any step fails.
 func (k msgServer) UpdateChainletStack(goCtx context.Context, msg *types.MsgUpdateChainletStack) (*types.MsgUpdateChainletStackResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {

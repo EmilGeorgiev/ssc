@@ -13,11 +13,17 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
+// setPendingVSC records that there is a pending VSC ( Validator Set Change ) packet for
+// a specific chainlet by storing an empty PendingVSC record in the KV store. This indicates
+// that the chainlet still needs to receive its initial VSC packet.
 func (k *Keeper) setPendingVSC(ctx sdk.Context, chainId string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
 	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingVSC{}))
 }
 
+// addConsumer add a new chainlet as a consumer. It then creates an empty VSC packet (using the current validator set update ID)
+// and enqueues it for the chainlet. Finally, it marks that the chainlet has a pending VSC packet.
+// This mechanism ensures that the new consumer chain is set up and ready to receive validator set updates.
 func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
 	revision := ibcclienttypes.ParseChainID(chainId)
 	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.MsgConsumerAddition{
@@ -47,7 +53,7 @@ func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Tim
 	return nil
 }
 
-// Forces sending queued VSC packets of new chainlets without waiting for the the provider epoch to end.
+// ForcePendingVSC forces sending queued VSC packets of new chainlets without waiting for the provider epoch to end.
 func (k *Keeper) ForcePendingVSC(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
 

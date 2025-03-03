@@ -9,6 +9,17 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
+// CreateChainletStack creates a chainlet stack which is essentially a blueprint or template for a chainlet. It contains
+// the configuration and metadata—such as the container image, version, checksum, display name, description, and fee
+// information—that define how a chainlet should be deployed and managed.
+//
+// When you create a chainlet stack, you’re not immediately launching a live blockchain. Instead, you’re registering the
+// settings and parameters that will be used later to instantiate a chainlet. Think of it as predefining the software
+// stack for your dedicated blockchain.
+//
+// The chainlet stack supports multiple versions. This allows for updates and improvements over time. Once a chainlet
+// stack is registered, further operations like LaunchChainlet, UpdateChainletStack, or UpgradeChainlet refer to this
+// pre-registered configuration.
 func (k msgServer) CreateChainletStack(goCtx context.Context, msg *types.MsgCreateChainletStack) (*types.MsgCreateChainletStackResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {

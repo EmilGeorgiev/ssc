@@ -22,6 +22,8 @@ type Keeper struct {
 	escrowKeeper   types.EscrowKeeper
 	aclKeeper      types.AclKeeper
 
+	// version data for each chainlet stack in memory. This avoids repeated,
+	// expensive lookups or parsing from persistent storage.
 	stackVersions map[string]*versions.Versions // display name => version tree
 }
 
