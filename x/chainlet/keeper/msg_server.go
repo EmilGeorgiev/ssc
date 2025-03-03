@@ -7,19 +7,13 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
+type ChainletLauncher interface {
+	LaunchChainlet(sdk.Context, types.Chainlet, types.Params) error
+}
+
 type msgServer struct {
 	*Keeper
-	launcher       ChainletLauncher
-	msgValidator   ChainletValidator
-	accountBilling AccountBilling
-}
-
-type ChainletValidator interface {
-	ValidateLaunch(ctx context.Context, msg *types.MsgLaunchChainlet, p types.Params) error
-}
-
-type AccountBilling interface {
-	BillAccount(ctx sdk.Context, chainlet types.Chainlet, p types.Params) error
+	launcher ChainletLauncher
 }
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
@@ -33,11 +27,12 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) LaunchChainlet2(goCtx context.Context, msg *types.MsgLaunchChainlet) (*types.MsgLaunchChainletResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	p := k.GetParams(ctx)
-	if err := k.msgValidator.ValidateLaunch(ctx, msg, p); err != nil {
+
+	if err := msg.ValidateBasic(); err != nil {
 		return &types.MsgLaunchChainletResponse{}, err
 	}
 
-	chainlet, err := k.buildChain(ctx, msg, p)
+	chainlet, err := k.buildChainlet(ctx, msg, p)
 	if err != nil {
 		return &types.MsgLaunchChainletResponse{}, err
 	}
@@ -55,7 +50,7 @@ func (k msgServer) LaunchChainlet2(goCtx context.Context, msg *types.MsgLaunchCh
 	})
 }
 
-func (k msgServer) buildChain(ctx sdk.Context, msg *types.MsgLaunchChainlet, p types.Params) (types.Chainlet, error) {
+func (k msgServer) buildChainlet(ctx sdk.Context, msg *types.MsgLaunchChainlet, p types.Params) (types.Chainlet, error) {
 	for idx, bal := range msg.Params.GenAcctBalances.List {
 		amount, err := math.ParseUint(bal.Balance + "000000000000000000")
 		if err != nil {

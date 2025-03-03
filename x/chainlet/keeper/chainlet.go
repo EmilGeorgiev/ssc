@@ -52,6 +52,28 @@ func (k *Keeper) NewChainlet(ctx sdk.Context, chainlet types.Chainlet) error {
 	return nil
 }
 
+func (k *Keeper) RegisterNewChainlet(ctx sdk.Context, chainlet types.Chainlet) error {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
+
+	key := []byte(chainlet.ChainId)
+	if store.Has(key) {
+		return cosmossdkerrors.Wrapf(types.ErrChainletExists, "chainlet with chainId %s already exists", chainlet.ChainId)
+	}
+
+	avail, err := k.chainletStackVersionAvailable(ctx, chainlet.ChainletStackName, chainlet.ChainletStackVersion)
+	if err != nil {
+		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "cannot use stack %s version %s: %s", chainlet.ChainletStackName, chainlet.ChainletStackVersion, err)
+	}
+	if !avail {
+		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "stack %s version %s not available", chainlet.ChainletStackName, chainlet.ChainletStackVersion)
+	}
+
+	value := k.cdc.MustMarshal(&chainlet)
+	store.Set(key, value)
+	k.incrementChainletCount(ctx)
+	return nil
+}
+
 func (k *Keeper) UpgradeChainletStackVersion(ctx sdk.Context, chainId, stackVersion string) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
 
