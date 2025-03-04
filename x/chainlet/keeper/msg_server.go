@@ -60,7 +60,7 @@ func (k msgServer) CreateChainletStack(goCtx context.Context, msg *types.MsgCrea
 	})
 }
 
-func (k msgServer) DisableChainletStackVersion2(goCtx context.Context, msg *types.MsgDisableChainletStackVersion) (resp *types.MsgDisableChainletStackVersionResponse, err error) {
+func (k msgServer) DisableChainletStackVersion(goCtx context.Context, msg *types.MsgDisableChainletStackVersion) (resp *types.MsgDisableChainletStackVersionResponse, err error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if err = k.validateMsgAndACL(ctx, msg.Creator, msg); err != nil {
 		return
