@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"fmt"
-
+	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
+	"encoding/binary"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
@@ -105,6 +106,8 @@ func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version st
 	return false, fmt.Errorf("stack version %s is not found", version)
 }
 
+/////////////////
+
 func (k *Keeper) getChainletStack(ctx sdk.Context, name string) (stack types.ChainletStack, err error) {
 	byteKey := []byte(name)
 
@@ -117,4 +120,86 @@ func (k *Keeper) getChainletStack(ctx sdk.Context, name string) (stack types.Cha
 	data := store.Get(byteKey)
 	k.cdc.MustUnmarshal(data, &stack)
 	return
+}
+
+func (k *Keeper) CreateChainletStack(ctx sdk.Context, cs types.ChainletStack) error {
+	for _, version := range cs.Versions {
+		if version.Enabled {
+			err := k.AddVersion(ctx, cs.DisplayName, version.Version)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Our key is the display name e.g. SagaEVM. Associated with this key can be many versions
+	// Versions is a slice of object type TemplateMetadata
+	byteKey := []byte(cs.DisplayName)
+	value := k.cdc.MustMarshal(&cs)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
+	store.Set(byteKey, value)
+
+	return nil
+}
+
+func (k *Keeper) AddChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version types.ChainletStackParams) error {
+	// Store in the version tree for automatic updates
+	if version.Enabled {
+		err := k.AddVersion(ctx, stack.DisplayName, version.Version)
+		if err != nil {
+			return err
+		}
+	}
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
+	updatedValue := k.cdc.MustMarshal(&stack)
+	store.Set([]byte(stack.DisplayName), updatedValue)
+	return nil
+}
+
+func (k *Keeper) DisableChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version string) error {
+	err := k.RemoveVersion(ctx, stack.DisplayName, version)
+	if err != nil {
+		return err
+	}
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
+	updatedValue := k.cdc.MustMarshal(&stack)
+	store.Set([]byte(stack.DisplayName), updatedValue)
+	return nil
+}
+
+func (k *Keeper) GetChainletCount2(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.NumChainletsKey)
+	ctx.Logger().Info("GetChainletCount", "count", binary.BigEndian.Uint64(bz))
+	return binary.BigEndian.Uint64(bz)
+}
+
+func (k *Keeper) ChainletStackExist(ctx sdk.Context, displayName string) bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (k *Keeper) Create(ctx sdk.Context, chainlet types.Chainlet) error {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
+
+	key := []byte(chainlet.ChainId)
+	value := k.cdc.MustMarshal(&chainlet)
+	store.Set(key, value)
+	k.incrementChainletCount(ctx)
+	return nil
+}
+
+func (k *Keeper) UpgradeChainlet2(ctx sdk.Context, ch types.Chainlet) error {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
+	key := []byte(ch.ChainId)
+	if !store.Has(key) {
+		return cosmossdkerrors.Wrapf(types.ErrInvalidChainId, "chainlet with chainId %s not found", ch.ChainId)
+	}
+
+	updatedValue := k.cdc.MustMarshal(&ch)
+	store.Set(key, updatedValue)
+
+	return nil
 }

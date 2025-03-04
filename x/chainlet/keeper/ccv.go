@@ -47,6 +47,35 @@ func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Tim
 	return nil
 }
 
+func (k *Keeper) RegisterChainletAsConsumerInCCV(ctx sdk.Context, chainId string, spawnTime time.Time) error {
+	revision := ibcclienttypes.ParseChainID(chainId)
+	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.MsgConsumerAddition{
+		ChainId:                           chainId,
+		InitialHeight:                     ibcclienttypes.NewHeight(revision, 1),
+		SpawnTime:                         spawnTime,
+		UnbondingPeriod:                   ccvtypes.DefaultConsumerUnbondingPeriod,
+		CcvTimeoutPeriod:                  ccvtypes.DefaultCCVTimeoutPeriod,
+		TransferTimeoutPeriod:             ccvtypes.DefaultTransferTimeoutPeriod,
+		ConsumerRedistributionFraction:    "0.0",
+		BlocksPerDistributionTransmission: ccvtypes.DefaultBlocksPerDistributionTransmission,
+		HistoricalEntries:                 ccvtypes.DefaultHistoricalEntries,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Enqueue an empty VSC packet
+	valUpdateID := k.providerKeeper.GetValidatorSetUpdateId(ctx)
+	packet := ccvtypes.NewValidatorSetChangePacketData(nil, valUpdateID, nil)
+	k.providerKeeper.AppendPendingVSCPackets(ctx, chainId, packet)
+	k.providerKeeper.IncrementValidatorSetUpdateId(ctx)
+
+	// Send it right after a channel is created
+	k.setPendingVSC(ctx, chainId)
+
+	return nil
+}
+
 // Forces sending queued VSC packets of new chainlets without waiting for the the provider epoch to end.
 func (k *Keeper) ForcePendingVSC(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
