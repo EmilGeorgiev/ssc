@@ -81,6 +81,29 @@ func (k msgServer) DisableChainletStackVersion(goCtx context.Context, msg *types
 	})
 }
 
+func (k msgServer) UpdateChainletStack(goCtx context.Context, msg *types.MsgUpdateChainletStack) (resp *types.MsgUpdateChainletStackResponse, err error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err = k.validateMsgAndACL(ctx, msg.Creator, msg); err != nil {
+		return
+	}
+
+	version := types.ChainletStackParams{
+		Image:    msg.Image,
+		Version:  msg.Version,
+		Checksum: msg.Checksum,
+		Enabled:  true,
+	}
+	err = k.chainletService.AddChainletStackVersion(ctx, msg.DisplayName, version)
+	if err != nil {
+		return nil, fmt.Errorf("error while adding chainlet stack version: %w", err)
+	}
+
+	return &types.MsgUpdateChainletStackResponse{}, ctx.EventManager().EmitTypedEvent(&types.EventNewChainletStackVersion{
+		Name:    msg.DisplayName,
+		Version: msg.Version,
+	})
+}
+
 func (k msgServer) LaunchChainlet2(goCtx context.Context, msg *types.MsgLaunchChainlet) (*types.MsgLaunchChainletResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	p := k.GetParams(ctx)
@@ -104,29 +127,6 @@ func (k msgServer) LaunchChainlet2(goCtx context.Context, msg *types.MsgLaunchCh
 		ChainId:      msg.ChainId,
 		Stack:        msg.ChainletStackName,
 		StackVersion: msg.ChainletStackVersion,
-	})
-}
-
-func (k msgServer) UpdateChainletStack2(goCtx context.Context, msg *types.MsgUpdateChainletStack) (resp *types.MsgUpdateChainletStackResponse, err error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err = k.validateMsgAndACL(ctx, msg.Creator, msg); err != nil {
-		return
-	}
-
-	version := types.ChainletStackParams{
-		Image:    msg.Image,
-		Version:  msg.Version,
-		Checksum: msg.Checksum,
-		Enabled:  true,
-	}
-	err = k.chainletService.AddChainletStackVersion(ctx, msg.DisplayName, version)
-	if err != nil {
-		return nil, fmt.Errorf("error while adding chainlet stack version: %w", err)
-	}
-
-	return &types.MsgUpdateChainletStackResponse{}, ctx.EventManager().EmitTypedEvent(&types.EventNewChainletStackVersion{
-		Name:    msg.DisplayName,
-		Version: msg.Version,
 	})
 }
 
