@@ -16,6 +16,14 @@ type DefaultBillingAccount struct {
 	billingKeeper types.BillingKeeper
 }
 
+func NewDefaultBillingAccount(r ChainletStackRepository, ek types.EscrowKeeper, bk types.BillingKeeper) DefaultBillingAccount {
+	return DefaultBillingAccount{
+		repo:          r,
+		escrowKeeper:  ek,
+		billingKeeper: bk,
+	}
+}
+
 func (b DefaultBillingAccount) CreateNewAccount(ctx sdk.Context, chainlet types.Chainlet, p types.Params) (acc Account, err error) {
 	stack, err := b.repo.getChainletStack(ctx, chainlet.ChainletStackName)
 	if err != nil {

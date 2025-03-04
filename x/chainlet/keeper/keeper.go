@@ -57,3 +57,15 @@ func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 func (k *Keeper) StackVersions(stackName string) *versions.Versions {
 	return k.stackVersions[stackName]
 }
+
+func (k *Keeper) GetACLKeeper() types.AclKeeper {
+	return k.aclKeeper
+}
+
+func (k *Keeper) GetEscrowKeeper() types.EscrowKeeper {
+	return k.escrowKeeper
+}
+
+func (k *Keeper) GetBillingKeeper() types.BillingKeeper {
+	return k.billingKeeper
+}

@@ -13,5 +13,5 @@ import (
 //nolint:unused
 func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
 	k, ctx := keepertest.ChainletKeeper(t)
-	return keeper.NewMsgServerImpl(k), ctx
+	return keeper.NewMsgServerImpl(k, nil), ctx
 }

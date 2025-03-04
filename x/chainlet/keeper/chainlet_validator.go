@@ -11,10 +11,17 @@ import (
 )
 
 type ChainletActionsValidator struct {
-	k                 Keeper
 	chainletRepo      ChainletRepository
 	chainletStackRepo ChainletStackRepository
 	aclKeeper         types.AclKeeper
+}
+
+func NewChainletActionsValidator(cr ChainletRepository, sr ChainletStackRepository, acl types.AclKeeper) ChainletActionsValidator {
+	return ChainletActionsValidator{
+		chainletRepo:      cr,
+		chainletStackRepo: sr,
+		aclKeeper:         acl,
+	}
 }
 
 func (f ChainletActionsValidator) ValidateChainletStackCreation(ctx sdk.Context, stack types.ChainletStack) error {

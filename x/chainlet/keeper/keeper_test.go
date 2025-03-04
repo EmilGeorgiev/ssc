@@ -106,7 +106,7 @@ func (s *TestSuite) SetupTest() {
 		s.escrowKeeper,
 		s.aclKeeper,
 	)
-	s.msgServer = keeper.NewMsgServerImpl(s.chainletKeeper)
+	s.msgServer = keeper.NewMsgServerImpl(s.chainletKeeper, nil)
 
 	s.Require().Equal(s.ctx.Logger().With("module", "x/"+types.ModuleName),
 		s.chainletKeeper.Logger(s.ctx))

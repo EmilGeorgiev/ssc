@@ -51,6 +51,17 @@ type DefaultChainletService struct {
 	ccvRegisterer  CCVConsumerRegisterer
 }
 
+func NewDefaultChainletService(v ChainletValidator, cr ChainletRepository, sr ChainletStackRepository,
+	as AccountService, ccv CCVConsumerRegisterer) DefaultChainletService {
+	return DefaultChainletService{
+		validator:      v,
+		repo:           cr,
+		stackRepo:      sr,
+		accountService: as,
+		ccvRegisterer:  ccv,
+	}
+}
+
 func (c DefaultChainletService) CreateChainletStack(ctx sdk.Context, stack types.ChainletStack) error {
 	if err := c.validator.ValidateChainletStackCreation(ctx, stack); err != nil {
 		return err
