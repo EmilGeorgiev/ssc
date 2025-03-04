@@ -104,7 +104,7 @@ func (k msgServer) UpdateChainletStack(goCtx context.Context, msg *types.MsgUpda
 	})
 }
 
-func (k msgServer) LaunchChainlet2(goCtx context.Context, msg *types.MsgLaunchChainlet) (*types.MsgLaunchChainletResponse, error) {
+func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchChainlet) (*types.MsgLaunchChainletResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	p := k.GetParams(ctx)
 
