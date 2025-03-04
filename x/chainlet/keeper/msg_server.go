@@ -8,21 +8,17 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-type ChainletLauncher interface {
-	Launch(sdk.Context, types.Chainlet, types.Params) error
-}
-
-type ChainletStackCreator interface {
-	Create(sdk.Context, types.ChainletStack, types.Params) error
-	DisableChainletStackVersion(sdk.Context, DisableChainletStackVersion, types.Params) error
-	UpdateChainletStackVersion(ctx sdk.Context, creator, stackName string, version types.ChainletStackParams, p types.Params) error
-	UpdateChainlet(ctx sdk.Context, chainId, creator, stackVersion string) error
+type ChainletService interface {
+	CreateChainletStack(sdk.Context, types.ChainletStack) error
+	AddChainletStackVersion(ctx sdk.Context, stackName string, version types.ChainletStackParams) error
+	DisableChainletStackVersion(sdk.Context, DisableChainletStackVersion) error
+	LaunchChainlet(sdk.Context, types.Chainlet, types.Params) error
+	UpdateChainletVersion(ctx sdk.Context, chainId, creator, stackVersion string) error
 }
 
 type msgServer struct {
 	*Keeper
-	chainletLauncher     ChainletLauncher
-	chainletStackCreator ChainletStackCreator
+	chainletService ChainletService
 }
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
@@ -34,11 +30,10 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (k msgServer) CreateChainletStack2(goCtx context.Context, msg *types.MsgCreateChainletStack) (*types.MsgCreateChainletStackResponse, error) {
-	if err := msg.ValidateBasic(); err != nil {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := k.validateMsgAndACL(ctx, msg.Creator, msg); err != nil {
 		return &types.MsgCreateChainletStackResponse{}, err
 	}
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	p := k.GetParams(ctx)
 
 	metaData := types.ChainletStackParams{
 		Image:    msg.Image,
@@ -54,7 +49,7 @@ func (k msgServer) CreateChainletStack2(goCtx context.Context, msg *types.MsgCre
 		Versions:    metaDataUpsert,
 		Fees:        msg.Fees,
 	}
-	if err := k.chainletStackCreator.Create(ctx, chainletStack, p); err != nil {
+	if err := k.chainletService.CreateChainletStack(ctx, chainletStack); err != nil {
 		return nil, fmt.Errorf("error while adding chainlet stack: %s", err)
 	}
 
@@ -66,17 +61,17 @@ func (k msgServer) CreateChainletStack2(goCtx context.Context, msg *types.MsgCre
 }
 
 func (k msgServer) DisableChainletStackVersion2(goCtx context.Context, msg *types.MsgDisableChainletStackVersion) (resp *types.MsgDisableChainletStackVersionResponse, err error) {
-	if err = msg.ValidateBasic(); err != nil {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err = k.validateMsgAndACL(ctx, msg.Creator, msg); err != nil {
 		return
 	}
 
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	v := DisableChainletStackVersion{
 		Creator:     msg.Creator,
 		DisplayName: msg.DisplayName,
 		Version:     msg.Version,
 	}
-	if err = k.chainletStackCreator.DisableChainletStackVersion(ctx, v, k.GetParams(ctx)); err != nil {
+	if err = k.chainletService.DisableChainletStackVersion(ctx, v); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +94,7 @@ func (k msgServer) LaunchChainlet2(goCtx context.Context, msg *types.MsgLaunchCh
 		return &types.MsgLaunchChainletResponse{}, err
 	}
 
-	if err = k.chainletLauncher.Launch(ctx, chainlet, p); err != nil {
+	if err = k.chainletService.LaunchChainlet(ctx, chainlet, p); err != nil {
 		return &types.MsgLaunchChainletResponse{}, err
 	}
 
@@ -112,21 +107,19 @@ func (k msgServer) LaunchChainlet2(goCtx context.Context, msg *types.MsgLaunchCh
 	})
 }
 
-func (k msgServer) UpdateChainletStack2(goCtx context.Context, msg *types.MsgUpdateChainletStack) (*types.MsgUpdateChainletStackResponse, error) {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return &types.MsgUpdateChainletStackResponse{}, err
-	}
+func (k msgServer) UpdateChainletStack2(goCtx context.Context, msg *types.MsgUpdateChainletStack) (resp *types.MsgUpdateChainletStackResponse, err error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err = k.validateMsgAndACL(ctx, msg.Creator, msg); err != nil {
+		return
+	}
 
-	p := k.GetParams(ctx)
 	version := types.ChainletStackParams{
 		Image:    msg.Image,
 		Version:  msg.Version,
 		Checksum: msg.Checksum,
 		Enabled:  true,
 	}
-	err = k.chainletStackCreator.UpdateChainletStackVersion(ctx, msg.Creator, msg.DisplayName, version, p)
+	err = k.chainletService.AddChainletStackVersion(ctx, msg.DisplayName, version)
 	if err != nil {
 		return nil, fmt.Errorf("error while adding chainlet stack version: %w", err)
 	}
@@ -143,7 +136,7 @@ func (k msgServer) UpgradeChainlet2(goCtx context.Context, msg *types.MsgUpgrade
 		return &types.MsgUpgradeChainletResponse{}, err
 	}
 
-	if err := k.chainletStackCreator.UpdateChainlet(ctx, msg.ChainId, msg.Creator, msg.StackVersion); err != nil {
+	if err := k.chainletService.UpdateChainletVersion(ctx, msg.ChainId, msg.Creator, msg.StackVersion); err != nil {
 		return &types.MsgUpgradeChainletResponse{}, err
 	}
 
@@ -179,4 +172,25 @@ func (k msgServer) buildChainlet(ctx sdk.Context, msg *types.MsgLaunchChainlet, 
 		Status:               types.Status_STATUS_ONLINE,
 		AutoUpgradeStack:     !msg.DisableAutomaticStackUpgrades,
 	}, nil
+}
+
+func (k msgServer) validateMsgAndACL(ctx sdk.Context, msgCreator string, validator validator) error {
+	if err := validator.ValidateBasic(); err != nil {
+		return err
+	}
+	p := k.GetParams(ctx)
+	if p.ChainletStackProtections {
+		addr, err := sdk.AccAddressFromBech32(msgCreator)
+		if err != nil {
+			return err
+		}
+		if !k.aclKeeper.Allowed(ctx, addr) {
+			return fmt.Errorf("address %s not allowed to perform the action", msgCreator)
+		}
+	}
+	return nil
+}
+
+type validator interface {
+	ValidateBasic() error
 }

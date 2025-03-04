@@ -10,17 +10,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-//type ChainletRepository interface {
-//	GetChainletStack(goCtx context.Context, req *types.QueryGetChainletStackRequest) (*types.QueryGetChainletStackResponse, error)
-//}
-
-type FooBillingAccount struct {
-	repo          ChainletRepository
+type DefaultBillingAccount struct {
+	repo          ChainletStackRepository
 	escrowKeeper  types.EscrowKeeper
 	billingKeeper types.BillingKeeper
 }
 
-func (b FooBillingAccount) CreateNewAccount(ctx sdk.Context, chainlet types.Chainlet, p types.Params) (acc Account, err error) {
+func (b DefaultBillingAccount) CreateNewAccount(ctx sdk.Context, chainlet types.Chainlet, p types.Params) (acc Account, err error) {
 	stack, err := b.repo.getChainletStack(ctx, chainlet.ChainletStackName)
 	if err != nil {
 		err = types.ErrInvalidChainletStack
@@ -61,7 +57,7 @@ type Account struct {
 	stack    types.ChainletStack
 }
 
-func (b FooBillingAccount) BillAccount(ctx sdk.Context, account Account) error {
+func (b DefaultBillingAccount) BillAccount(ctx sdk.Context, account Account) error {
 	epochfee, err := sdk.ParseCoinNormalized(account.stack.Fees.EpochFee)
 	if err != nil {
 		return types.ErrInvalidCoin
@@ -79,30 +75,3 @@ func (b FooBillingAccount) BillAccount(ctx sdk.Context, account Account) error {
 	}
 	return nil
 }
-
-//func (b FooBillingAccount) getFee(epochFee, setupFee string, p types.Params) (deposit sdk.Coin, totalFee sdk.Coin, err error) {
-//	epochfee, err := sdk.ParseCoinNormalized(epochFee)
-//	if err != nil {
-//		err = types.ErrInvalidCoin
-//		return
-//	}
-//	setupfee, err := sdk.ParseCoinNormalized(setupFee)
-//	if err != nil {
-//		err = types.ErrInvalidCoin
-//		return
-//	}
-//
-//	multiplier, ok := math.NewIntFromString(p.NEpochDeposit)
-//	if !ok {
-//		err = fmt.Errorf("bad multiplier")
-//		return
-//	}
-//
-//	deposit = sdk.Coin{
-//		Amount: epochfee.Amount.Mul(multiplier),
-//		Denom:  epochfee.Denom,
-//	}
-//	deposit.Add(setupfee)
-//	totalFee = epochfee.Add(setupfee)
-//	return
-//}
