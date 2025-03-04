@@ -29,7 +29,7 @@ func NewMsgServerImpl(keeper *Keeper, s ChainletService) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) CreateChainletStack2(goCtx context.Context, msg *types.MsgCreateChainletStack) (*types.MsgCreateChainletStackResponse, error) {
+func (k msgServer) CreateChainletStack(goCtx context.Context, msg *types.MsgCreateChainletStack) (*types.MsgCreateChainletStackResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if err := k.validateMsgAndACL(ctx, msg.Creator, msg); err != nil {
 		return &types.MsgCreateChainletStackResponse{}, err

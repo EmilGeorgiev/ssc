@@ -177,8 +177,9 @@ func (k *Keeper) GetChainletCount2(ctx sdk.Context) uint64 {
 }
 
 func (k *Keeper) ChainletStackExist(ctx sdk.Context, displayName string) bool {
-	//TODO implement me
-	panic("implement me")
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
+	byteKey := []byte(displayName)
+	return store.Has(byteKey)
 }
 
 func (k *Keeper) Create(ctx sdk.Context, chainlet types.Chainlet) error {
