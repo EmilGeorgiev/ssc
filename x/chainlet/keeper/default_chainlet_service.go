@@ -30,7 +30,7 @@ type AccountService interface {
 type ChainletRepository interface {
 	GetChainletCount2(ctx sdk.Context) uint64
 	ChainletExists(ctx sdk.Context, chainId string) bool
-	UpgradeChainlet2(ctx sdk.Context, ch types.Chainlet) error
+	//UpgradeChainlet2(ctx sdk.Context, ch types.Chainlet) error
 	Chainlet(ctx sdk.Context, chainId string) (chainlet types.Chainlet, err error)
 	Create(sdk.Context, types.Chainlet) error
 	setChainletInfo(ctx sdk.Context, chainlet *types.Chainlet)
