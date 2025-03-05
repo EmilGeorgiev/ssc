@@ -31,7 +31,7 @@ func (k *Keeper) GetChainlet(goCtx context.Context, req *types.QueryGetChainletR
 	}, nil
 }
 
-func (k Keeper) GetChainletCount(goCtx context.Context, req *types.QueryGetChainletCountRequest) (*types.QueryGetChainletCountResponse, error) {
+func (k *Keeper) GetChainletCount(goCtx context.Context, req *types.QueryGetChainletCountRequest) (*types.QueryGetChainletCountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
