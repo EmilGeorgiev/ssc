@@ -33,6 +33,7 @@ type ChainletRepository interface {
 	UpgradeChainlet2(ctx sdk.Context, ch types.Chainlet) error
 	Chainlet(ctx sdk.Context, chainId string) (chainlet types.Chainlet, err error)
 	Create(sdk.Context, types.Chainlet) error
+	setChainletInfo(ctx sdk.Context, chainlet *types.Chainlet)
 }
 
 type ChainletStackRepository interface {
@@ -142,10 +143,7 @@ func (c DefaultChainletService) UpdateChainletVersion(ctx sdk.Context, chainId, 
 	}
 
 	chainlet.ChainletStackVersion = stackVersion
-	if err = c.repo.UpgradeChainlet2(ctx, chainlet); err != nil {
-		return fmt.Errorf("error while updating chainlet: %s", err)
-	}
-
+	c.repo.setChainletInfo(ctx, &chainlet)
 	return nil
 }
 
