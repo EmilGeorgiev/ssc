@@ -4,14 +4,13 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types"
+	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 	"time"
 )
 
 // ChainletValidator validate that the chainlet can be launched and all
 // the data, which is provided, is valid.
 type ChainletValidator interface {
-	ValidateChainletStackCreation(sdk.Context, types.ChainletStack) error
-	ValidateUpdateChainletStack(stack types.ChainletStack, params types.ChainletStackParams) error
 	ValidateChainletLaunch(sdk.Context, types.Chainlet, types.Params) error
 	ValidateChainletUpdate(ctx sdk.Context, chainlet types.Chainlet, creator, stackVersion string) error
 }
@@ -63,8 +62,14 @@ func NewDefaultChainletService(v ChainletValidator, cr ChainletRepository, sr Ch
 }
 
 func (c DefaultChainletService) CreateChainletStack(ctx sdk.Context, stack types.ChainletStack) error {
-	if err := c.validator.ValidateChainletStackCreation(ctx, stack); err != nil {
-		return err
+	for _, version := range stack.Versions {
+		if !versions.Check(version.Version) {
+			return fmt.Errorf("version string '%s' invalid", version.Version)
+		}
+	}
+
+	if isExists := c.stackRepo.ChainletStackExist(ctx, stack.DisplayName); isExists {
+		return fmt.Errorf("cannot add chainlet stack %v as it already exists", stack.DisplayName)
 	}
 
 	return c.stackRepo.CreateChainletStack(ctx, stack)
@@ -76,8 +81,14 @@ func (c DefaultChainletService) AddChainletStackVersion(ctx sdk.Context, stackNa
 		return fmt.Errorf("cannot get chainlet stack %s: %w", stackName, err)
 	}
 
-	if err = c.validator.ValidateUpdateChainletStack(stack, version); err != nil {
-		return err
+	for _, v := range stack.Versions {
+		if v.Image == version.Image || v.Version == version.Version || v.Checksum == version.Checksum {
+			return fmt.Errorf("cannot update chainlet stack %s with duplicate values for image, version, or checksum", stack.DisplayName)
+		}
+	}
+
+	if !versions.Check(version.Version) {
+		return fmt.Errorf("cannot update chainlet stack %s because version string '%s' invalid", stack.DisplayName, version.Version)
 	}
 
 	stack.Versions = append(stack.Versions, version)

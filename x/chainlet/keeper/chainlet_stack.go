@@ -6,22 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
-	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 )
-
-func validateUpdate(stack types.ChainletStack, version types.ChainletStackParams) error {
-	for _, v := range stack.Versions {
-		if v.Image == version.Image || v.Version == version.Version || v.Checksum == version.Checksum {
-			return fmt.Errorf("cannot update with duplicate values for image, version, or checksum")
-		}
-	}
-
-	if !versions.Check(version.Version) {
-		return fmt.Errorf("version string '%s' invalid", version.Version)
-	}
-
-	return nil
-}
 
 func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version string) (bool, error) {
 	stack, err := k.getChainletStack(ctx, name)

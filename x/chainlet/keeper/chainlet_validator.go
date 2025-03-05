@@ -26,29 +26,6 @@ func NewChainletActionsValidator(cr ChainletRepository, sr ChainletStackReposito
 	}
 }
 
-func (f ChainletActionsValidator) ValidateChainletStackCreation(ctx sdk.Context, stack types.ChainletStack) error {
-	for _, version := range stack.Versions {
-		if !versions.Check(version.Version) {
-			return fmt.Errorf("version string '%s' invalid", version.Version)
-		}
-	}
-
-	if isExists := f.chainletStackRepo.ChainletStackExist(ctx, stack.DisplayName); isExists {
-		// cannot add a duplicate chainlet stack so return an error
-		return fmt.Errorf("cannot add chainlet stack %v as it already exists", stack.DisplayName)
-	}
-
-	return nil
-}
-
-func (f ChainletActionsValidator) ValidateUpdateChainletStack(stack types.ChainletStack, version types.ChainletStackParams) error {
-	// Validate that the incoming fields can be updated
-	if err := validateUpdate(stack, version); err != nil {
-		return fmt.Errorf("cannot update chainlet stack %s: %w", stack.DisplayName, err)
-	}
-	return nil
-}
-
 func (f ChainletActionsValidator) ValidateChainletLaunch(ctx sdk.Context, ch types.Chainlet, p types.Params) error {
 	numberOfChainlets := f.chainletRepo.GetChainletCount2(ctx)
 	if numberOfChainlets >= p.MaxChainlets {
