@@ -405,63 +405,34 @@ func (m *MockChainletKeeper) EXPECT() *MockChainletKeeperMockRecorder {
 	return m.recorder
 }
 
-// ChainletExists mocks base method.
-func (m *MockChainletKeeper) ChainletExists(ctx types.Context, chainId string) bool {
+// Chainlet mocks base method.
+func (m *MockChainletKeeper) Chainlet(ctx types.Context, chainID string) (types2.Chainlet, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ChainletExists", ctx, chainId)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// ChainletExists indicates an expected call of ChainletExists.
-func (mr *MockChainletKeeperMockRecorder) ChainletExists(ctx, chainId interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainletExists", reflect.TypeOf((*MockChainletKeeper)(nil).ChainletExists), ctx, chainId)
-}
-
-// GetChainlet mocks base method.
-func (m *MockChainletKeeper) GetChainlet(ctx context.Context, req *types2.QueryGetChainletRequest) (*types2.QueryGetChainletResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChainlet", ctx, req)
-	ret0, _ := ret[0].(*types2.QueryGetChainletResponse)
+	ret := m.ctrl.Call(m, "Chainlet", ctx, chainID)
+	ret0, _ := ret[0].(types2.Chainlet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetChainlet indicates an expected call of GetChainlet.
-func (mr *MockChainletKeeperMockRecorder) GetChainlet(ctx, req interface{}) *gomock.Call {
+// Chainlet indicates an expected call of Chainlet.
+func (mr *MockChainletKeeperMockRecorder) Chainlet(ctx, chainID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChainlet", reflect.TypeOf((*MockChainletKeeper)(nil).GetChainlet), ctx, req)
-}
-
-// GetChainletInfo mocks base method.
-func (m *MockChainletKeeper) GetChainletInfo(ctx types.Context, chainId string) (*types2.Chainlet, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChainletInfo", ctx, chainId)
-	ret0, _ := ret[0].(*types2.Chainlet)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetChainletInfo indicates an expected call of GetChainletInfo.
-func (mr *MockChainletKeeperMockRecorder) GetChainletInfo(ctx, chainId interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChainletInfo", reflect.TypeOf((*MockChainletKeeper)(nil).GetChainletInfo), ctx, chainId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chainlet", reflect.TypeOf((*MockChainletKeeper)(nil).Chainlet), ctx, chainID)
 }
 
 // GetChainletStackInfo mocks base method.
-func (m *MockChainletKeeper) GetChainletStackInfo(ctx types.Context, chainId string) (*types2.ChainletStack, error) {
+func (m *MockChainletKeeper) GetChainletStackInfo(ctx types.Context, stackName string) (*types2.ChainletStack, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChainletStackInfo", ctx, chainId)
+	ret := m.ctrl.Call(m, "GetChainletStackInfo", ctx, stackName)
 	ret0, _ := ret[0].(*types2.ChainletStack)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetChainletStackInfo indicates an expected call of GetChainletStackInfo.
-func (mr *MockChainletKeeperMockRecorder) GetChainletStackInfo(ctx, chainId interface{}) *gomock.Call {
+func (mr *MockChainletKeeperMockRecorder) GetChainletStackInfo(ctx, stackName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChainletStackInfo", reflect.TypeOf((*MockChainletKeeper)(nil).GetChainletStackInfo), ctx, chainId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChainletStackInfo", reflect.TypeOf((*MockChainletKeeper)(nil).GetChainletStackInfo), ctx, stackName)
 }
 
 // GetParams mocks base method.
@@ -476,21 +447,6 @@ func (m *MockChainletKeeper) GetParams(ctx types.Context) types2.Params {
 func (mr *MockChainletKeeperMockRecorder) GetParams(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockChainletKeeper)(nil).GetParams), ctx)
-}
-
-// IsChainletStarted mocks base method.
-func (m *MockChainletKeeper) IsChainletStarted(ctx types.Context, chainId string) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsChainletStarted", ctx, chainId)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IsChainletStarted indicates an expected call of IsChainletStarted.
-func (mr *MockChainletKeeperMockRecorder) IsChainletStarted(ctx, chainId interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsChainletStarted", reflect.TypeOf((*MockChainletKeeper)(nil).IsChainletStarted), ctx, chainId)
 }
 
 // ListChainletStack mocks base method.
