@@ -120,8 +120,7 @@ func (am AppModule) IsAppModule()        {}
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	accService := keeper.NewDefaultBillingAccount(am.keeper, am.keeper.GetEscrowKeeper(), am.keeper.GetBillingKeeper())
-	chValidator := keeper.NewChainletActionsValidator(am.keeper, am.keeper)
-	chService := keeper.NewDefaultChainletService(chValidator, am.keeper, am.keeper, accService, am.keeper)
+	chService := keeper.NewDefaultChainletService(am.keeper, am.keeper, accService, am.keeper)
 
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, chService))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)

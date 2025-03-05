@@ -1,19 +1,17 @@
 package keeper
 
 import (
+	cosmossdkerrors "cosmossdk.io/errors"
+	"errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
+	"slices"
 	"time"
 )
 
-// ChainletValidator validate that the chainlet can be launched and all
-// the data, which is provided, is valid.
-type ChainletValidator interface {
-	ValidateChainletLaunch(sdk.Context, types.Chainlet, types.Params) error
-	ValidateChainletUpdate(ctx sdk.Context, chainlet types.Chainlet, creator, stackVersion string) error
-}
+const SagaAddress = "saga1h8r6gm4jehflfn2nn7mtw53l37skrke5kyax8l"
 
 // CCVConsumerRegisterer register the chainlet as a consumer in CCV
 type CCVConsumerRegisterer interface {
@@ -42,17 +40,15 @@ type ChainletStackRepository interface {
 }
 
 type DefaultChainletService struct {
-	validator      ChainletValidator
 	repo           ChainletRepository
 	stackRepo      ChainletStackRepository
 	accountService AccountService
 	ccvRegisterer  CCVConsumerRegisterer
 }
 
-func NewDefaultChainletService(v ChainletValidator, cr ChainletRepository, sr ChainletStackRepository,
+func NewDefaultChainletService(cr ChainletRepository, sr ChainletStackRepository,
 	as AccountService, ccv CCVConsumerRegisterer) DefaultChainletService {
 	return DefaultChainletService{
-		validator:      v,
 		repo:           cr,
 		stackRepo:      sr,
 		accountService: as,
@@ -121,7 +117,16 @@ func (c DefaultChainletService) DisableChainletStackVersion(ctx sdk.Context, dch
 }
 
 func (c DefaultChainletService) LaunchChainlet(ctx sdk.Context, chainlet types.Chainlet, p types.Params) error {
-	if err := c.validator.ValidateChainletLaunch(ctx, chainlet, p); err != nil {
+	numberOfChainlets := c.repo.GetChainletCount2(ctx)
+	if numberOfChainlets >= p.MaxChainlets {
+		return types.ErrTooManyChainlets
+	}
+
+	if _, err := c.repo.Chainlet(ctx, chainlet.ChainId); err == nil {
+		return cosmossdkerrors.Wrapf(types.ErrChainletExists, "chainlet with chainId %s already exists", chainlet.ChainId)
+	}
+
+	if err := c.stackRepo.chainletStackVersionAvailable(ctx, chainlet.ChainletStackName, chainlet.ChainletStackVersion); err != nil {
 		return err
 	}
 
@@ -147,7 +152,19 @@ func (c DefaultChainletService) UpdateChainletVersion(ctx sdk.Context, chainId, 
 		return err
 	}
 
-	if err = c.validator.ValidateChainletUpdate(ctx, chainlet, creator, stackVersion); err != nil {
+	if !slices.Contains(chainlet.Maintainers, creator) && creator != SagaAddress {
+		return fmt.Errorf("address %s not whitelisted for creating or updating chainlet stacks", creator)
+	}
+	majorUpgrade, err := versions.CheckUpgrade(chainlet.ChainletStackVersion, stackVersion)
+	if err != nil {
+		return err
+	}
+	// Only this Saga-controlled address is allowed to perform (manual) major upgrades until they're automated using IBC
+	if majorUpgrade && creator != SagaAddress {
+		return errors.New("major upgrades not implemented")
+	}
+
+	if err = c.stackRepo.chainletStackVersionAvailable(ctx, chainlet.ChainletStackName, stackVersion); err != nil {
 		return err
 	}
 
