@@ -10,6 +10,8 @@ import (
 	"slices"
 )
 
+const SagaAddress = "saga1h8r6gm4jehflfn2nn7mtw53l37skrke5kyax8l"
+
 type ChainletActionsValidator struct {
 	chainletRepo      ChainletRepository
 	chainletStackRepo ChainletStackRepository

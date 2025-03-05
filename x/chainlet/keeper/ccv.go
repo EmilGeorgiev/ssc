@@ -13,40 +13,6 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k *Keeper) setPendingVSC(ctx sdk.Context, chainId string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
-	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingVSC{}))
-}
-
-func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
-	revision := ibcclienttypes.ParseChainID(chainId)
-	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.MsgConsumerAddition{
-		ChainId:                           chainId,
-		InitialHeight:                     ibcclienttypes.NewHeight(revision, 1),
-		SpawnTime:                         spawnTime,
-		UnbondingPeriod:                   ccvtypes.DefaultConsumerUnbondingPeriod,
-		CcvTimeoutPeriod:                  ccvtypes.DefaultCCVTimeoutPeriod,
-		TransferTimeoutPeriod:             ccvtypes.DefaultTransferTimeoutPeriod,
-		ConsumerRedistributionFraction:    "0.0",
-		BlocksPerDistributionTransmission: ccvtypes.DefaultBlocksPerDistributionTransmission,
-		HistoricalEntries:                 ccvtypes.DefaultHistoricalEntries,
-	})
-	if err != nil {
-		return err
-	}
-
-	// Enqueue an empty VSC packet
-	valUpdateID := k.providerKeeper.GetValidatorSetUpdateId(ctx)
-	packet := ccvtypes.NewValidatorSetChangePacketData(nil, valUpdateID, nil)
-	k.providerKeeper.AppendPendingVSCPackets(ctx, chainId, packet)
-	k.providerKeeper.IncrementValidatorSetUpdateId(ctx)
-
-	// Send it right after a channel is created
-	k.setPendingVSC(ctx, chainId)
-
-	return nil
-}
-
 func (k *Keeper) RegisterChainletAsConsumerInCCV(ctx sdk.Context, chainId string, spawnTime time.Time) error {
 	revision := ibcclienttypes.ParseChainID(chainId)
 	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.MsgConsumerAddition{
@@ -102,4 +68,9 @@ func (k *Keeper) ForcePendingVSC(ctx sdk.Context) {
 		k.providerKeeper.SendVSCPacketsToChain(ctx, chainId, channelId)
 		defer store.Delete(iterator.Key())
 	}
+}
+
+func (k *Keeper) setPendingVSC(ctx sdk.Context, chainId string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
+	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingVSC{}))
 }
