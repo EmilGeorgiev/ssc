@@ -28,14 +28,12 @@ type AccountService interface {
 
 type ChainletRepository interface {
 	GetChainletCount2(ctx sdk.Context) uint64
-	ChainletExists(ctx sdk.Context, chainId string) bool
 	Chainlet(ctx sdk.Context, chainId string) (chainlet types.Chainlet, err error)
 	Create(sdk.Context, types.Chainlet) error
 	setChainletInfo(ctx sdk.Context, chainlet *types.Chainlet)
 }
 
 type ChainletStackRepository interface {
-	ChainletStackExist(ctx sdk.Context, displayName string) bool
 	getChainletStack(ctx sdk.Context, name string) (stack types.ChainletStack, err error)
 	CreateChainletStack(ctx sdk.Context, cs types.ChainletStack) error
 	DisableChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version string) error
@@ -68,7 +66,7 @@ func (c DefaultChainletService) CreateChainletStack(ctx sdk.Context, stack types
 		}
 	}
 
-	if isExists := c.stackRepo.ChainletStackExist(ctx, stack.DisplayName); isExists {
+	if _, err := c.stackRepo.getChainletStack(ctx, stack.DisplayName); err == nil {
 		return fmt.Errorf("cannot add chainlet stack %v as it already exists", stack.DisplayName)
 	}
 

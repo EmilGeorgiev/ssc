@@ -170,13 +170,6 @@ func (k *Keeper) StopChainlet(ctx sdk.Context, chainId string) error {
 }
 
 // replace it with method Chainlet(ctx sdk.Context, chainId string) (types.Chainlet, error)
-func (k *Keeper) ChainletExists(ctx sdk.Context, chainId string) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.ChainletKey))
-	key := []byte(chainId)
-	return store.Has(key)
-}
-
-// replace it with method Chainlet(ctx sdk.Context, chainId string) (types.Chainlet, error)
 func (k *Keeper) GetChainletInfo(ctx sdk.Context, chainId string) (*types.Chainlet, error) {
 	// Get the store
 	lcStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)

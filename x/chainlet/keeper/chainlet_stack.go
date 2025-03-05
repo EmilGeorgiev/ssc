@@ -88,9 +88,3 @@ func (k *Keeper) DisableChainletStackVersion2(ctx sdk.Context, stack types.Chain
 	store.Set([]byte(stack.DisplayName), updatedValue)
 	return nil
 }
-
-func (k *Keeper) ChainletStackExist(ctx sdk.Context, displayName string) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
-	byteKey := []byte(displayName)
-	return store.Has(byteKey)
-}

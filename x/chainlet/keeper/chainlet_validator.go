@@ -32,7 +32,7 @@ func (f ChainletActionsValidator) ValidateChainletLaunch(ctx sdk.Context, ch typ
 		return types.ErrTooManyChainlets
 	}
 
-	if isExist := f.chainletRepo.ChainletExists(ctx, ch.ChainId); isExist {
+	if _, err := f.chainletRepo.Chainlet(ctx, ch.ChainId); err == nil {
 		return cosmossdkerrors.Wrapf(types.ErrChainletExists, "chainlet with chainId %s already exists", ch.ChainId)
 	}
 
