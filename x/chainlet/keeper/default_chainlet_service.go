@@ -35,6 +35,7 @@ type ChainletRepository interface {
 
 type ChainletStackRepository interface {
 	getChainletStack(ctx sdk.Context, name string) (stack types.ChainletStack, err error)
+	chainletStackVersionAvailable(ctx sdk.Context, name, version string) error
 	CreateChainletStack(ctx sdk.Context, cs types.ChainletStack) error
 	DisableChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version string) error
 	AddChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version types.ChainletStackParams) error

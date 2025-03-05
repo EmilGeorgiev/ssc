@@ -15,14 +15,12 @@ const SagaAddress = "saga1h8r6gm4jehflfn2nn7mtw53l37skrke5kyax8l"
 type ChainletActionsValidator struct {
 	chainletRepo      ChainletRepository
 	chainletStackRepo ChainletStackRepository
-	aclKeeper         types.AclKeeper
 }
 
-func NewChainletActionsValidator(cr ChainletRepository, sr ChainletStackRepository, acl types.AclKeeper) ChainletActionsValidator {
+func NewChainletActionsValidator(cr ChainletRepository, sr ChainletStackRepository) ChainletActionsValidator {
 	return ChainletActionsValidator{
 		chainletRepo:      cr,
 		chainletStackRepo: sr,
-		aclKeeper:         acl,
 	}
 }
 
@@ -36,7 +34,7 @@ func (f ChainletActionsValidator) ValidateChainletLaunch(ctx sdk.Context, ch typ
 		return cosmossdkerrors.Wrapf(types.ErrChainletExists, "chainlet with chainId %s already exists", ch.ChainId)
 	}
 
-	return f.chainletStackVersionAvailable(ctx, ch.ChainletStackName, ch.ChainletStackVersion)
+	return f.chainletStackRepo.chainletStackVersionAvailable(ctx, ch.ChainletStackName, ch.ChainletStackVersion)
 }
 
 func (f ChainletActionsValidator) ValidateChainletUpdate(ctx sdk.Context, ogChainlet types.Chainlet, creator, stackVersion string) error {
@@ -52,25 +50,5 @@ func (f ChainletActionsValidator) ValidateChainletUpdate(ctx sdk.Context, ogChai
 		return errors.New("major upgrades not implemented")
 	}
 
-	return f.chainletStackVersionAvailable(ctx, ogChainlet.ChainletStackName, stackVersion)
-}
-
-func (f ChainletActionsValidator) chainletStackVersionAvailable(ctx sdk.Context, name, version string) error {
-	stack, err := f.chainletStackRepo.getChainletStack(ctx, name)
-	if err != nil {
-		return fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
-	}
-
-	for _, v := range stack.Versions {
-		if v.Version != version {
-			continue
-		}
-		if !v.Enabled {
-			return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "stack %s version %s not available", name, version)
-		}
-		return nil
-	}
-
-	return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "cannot upgrade to stack %s version %s. Version is not found", name, version)
-
+	return f.chainletStackRepo.chainletStackVersionAvailable(ctx, ogChainlet.ChainletStackName, stackVersion)
 }

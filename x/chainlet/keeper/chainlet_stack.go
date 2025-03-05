@@ -8,10 +8,10 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version string) (bool, error) {
+func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version string) error {
 	stack, err := k.getChainletStack(ctx, name)
 	if err != nil {
-		return false, fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
+		return fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
 	}
 
 	//TODO avoid loop
@@ -20,12 +20,12 @@ func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version st
 			continue
 		}
 		if !v.Enabled {
-			return false, nil
+			return fmt.Errorf("stack version %s is disabled", version)
 		}
-		return true, nil
+		return nil
 	}
 
-	return false, fmt.Errorf("stack version %s is not found", version)
+	return fmt.Errorf("stack version %s is not found", version)
 }
 
 func (k *Keeper) getChainletStack(ctx sdk.Context, name string) (stack types.ChainletStack, err error) {

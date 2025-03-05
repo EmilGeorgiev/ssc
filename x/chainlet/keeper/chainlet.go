@@ -73,8 +73,7 @@ func (k *Keeper) AutoUpgradeChainlets(ctx sdk.Context) error {
 			return nil
 		}
 
-		available, err := k.chainletStackVersionAvailable(ctx, chainlet.ChainletStackName, latestVersion)
-		if err != nil || !available {
+		if err = k.chainletStackVersionAvailable(ctx, chainlet.ChainletStackName, latestVersion); err != nil {
 			iter.Close()
 			//TODO change to panic in the future, should never happen if the loaded versions are consistent with the state
 			return fmt.Errorf("chainlet stack %s has unavailable version %s loaded", chainlet.ChainletStackName, latestVersion)

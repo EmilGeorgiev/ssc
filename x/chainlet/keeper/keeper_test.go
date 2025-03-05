@@ -107,7 +107,7 @@ func (s *TestSuite) SetupTest() {
 		s.aclKeeper,
 	)
 	accService := keeper.NewDefaultBillingAccount(s.chainletKeeper, s.escrowKeeper, s.billingKeeper)
-	chValidator := keeper.NewChainletActionsValidator(s.chainletKeeper, s.chainletKeeper, s.aclKeeper)
+	chValidator := keeper.NewChainletActionsValidator(s.chainletKeeper, s.chainletKeeper)
 	chService := keeper.NewDefaultChainletService(chValidator, s.chainletKeeper, s.chainletKeeper, accService, s.chainletKeeper)
 
 	s.msgServer = keeper.NewMsgServerImpl(s.chainletKeeper, chService)
