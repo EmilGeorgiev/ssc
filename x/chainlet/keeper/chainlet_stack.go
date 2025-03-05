@@ -9,7 +9,7 @@ import (
 )
 
 func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version string) error {
-	stack, err := k.getChainletStack(ctx, name)
+	stack, err := k.GetChainletStackInfo(ctx, name)
 	if err != nil {
 		return fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
 	}
@@ -28,7 +28,7 @@ func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version st
 	return fmt.Errorf("stack version %s is not found", version)
 }
 
-func (k *Keeper) getChainletStack(ctx sdk.Context, name string) (stack types.ChainletStack, err error) {
+func (k *Keeper) GetChainletStackInfo(ctx sdk.Context, name string) (stack types.ChainletStack, err error) {
 	byteKey := []byte(name)
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)

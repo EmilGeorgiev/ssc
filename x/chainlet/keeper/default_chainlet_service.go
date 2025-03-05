@@ -28,11 +28,11 @@ type ChainletRepository interface {
 	GetChainletCount2(ctx sdk.Context) uint64
 	Chainlet(ctx sdk.Context, chainId string) (chainlet types.Chainlet, err error)
 	Create(sdk.Context, types.Chainlet) error
-	setChainletInfo(ctx sdk.Context, chainlet *types.Chainlet)
+	setChainletInfo(ctx sdk.Context, chainlet types.Chainlet)
 }
 
 type ChainletStackRepository interface {
-	getChainletStack(ctx sdk.Context, name string) (stack types.ChainletStack, err error)
+	GetChainletStackInfo(ctx sdk.Context, name string) (stack types.ChainletStack, err error)
 	chainletStackVersionAvailable(ctx sdk.Context, name, version string) error
 	CreateChainletStack(ctx sdk.Context, cs types.ChainletStack) error
 	DisableChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version string) error
@@ -63,7 +63,7 @@ func (c DefaultChainletService) CreateChainletStack(ctx sdk.Context, stack types
 		}
 	}
 
-	if _, err := c.stackRepo.getChainletStack(ctx, stack.DisplayName); err == nil {
+	if _, err := c.stackRepo.GetChainletStackInfo(ctx, stack.DisplayName); err == nil {
 		return fmt.Errorf("cannot add chainlet stack %v as it already exists", stack.DisplayName)
 	}
 
@@ -71,7 +71,7 @@ func (c DefaultChainletService) CreateChainletStack(ctx sdk.Context, stack types
 }
 
 func (c DefaultChainletService) AddChainletStackVersion(ctx sdk.Context, stackName string, version types.ChainletStackParams) error {
-	stack, err := c.stackRepo.getChainletStack(ctx, stackName)
+	stack, err := c.stackRepo.GetChainletStackInfo(ctx, stackName)
 	if err != nil {
 		return fmt.Errorf("cannot get chainlet stack %s: %w", stackName, err)
 	}
@@ -91,7 +91,7 @@ func (c DefaultChainletService) AddChainletStackVersion(ctx sdk.Context, stackNa
 }
 
 func (c DefaultChainletService) DisableChainletStackVersion(ctx sdk.Context, dchsv DisableChainletStackVersion) error {
-	stack, err := c.stackRepo.getChainletStack(ctx, dchsv.DisplayName)
+	stack, err := c.stackRepo.GetChainletStackInfo(ctx, dchsv.DisplayName)
 	if err != nil {
 		return fmt.Errorf("cannot get chainlet stack %s: %w", dchsv.DisplayName, err)
 	}
@@ -169,7 +169,7 @@ func (c DefaultChainletService) UpdateChainletVersion(ctx sdk.Context, chainId, 
 	}
 
 	chainlet.ChainletStackVersion = stackVersion
-	c.repo.setChainletInfo(ctx, &chainlet)
+	c.repo.setChainletInfo(ctx, chainlet)
 	return nil
 }
 

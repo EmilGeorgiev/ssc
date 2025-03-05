@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	cosmossdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 	"encoding/binary"
 	"fmt"
@@ -28,10 +27,10 @@ func (k *Keeper) Chainlet(ctx sdk.Context, chainId string) (chainlet types.Chain
 	return
 }
 
-func (k *Keeper) setChainletInfo(ctx sdk.Context, chainlet *types.Chainlet) {
+func (k *Keeper) setChainletInfo(ctx sdk.Context, chainlet types.Chainlet) {
 	lcStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
 	byteLCKey := []byte(chainlet.ChainId)
-	updatedValue := k.cdc.MustMarshal(chainlet)
+	updatedValue := k.cdc.MustMarshal(&chainlet)
 	lcStore.Set(byteLCKey, updatedValue)
 }
 
@@ -86,7 +85,7 @@ func (k *Keeper) AutoUpgradeChainlets(ctx sdk.Context) error {
 
 		ctx.Logger().Info(fmt.Sprintf("upgrading chainlet %s: %s to %s\n", chainlet.ChainId, chainlet.ChainletStackVersion, latestVersion))
 		chainlet.ChainletStackVersion = latestVersion
-		defer k.setChainletInfo(ctx, &chainlet)
+		defer k.setChainletInfo(ctx, chainlet)
 	}
 	iter.Close()
 
@@ -110,22 +109,8 @@ func (k *Keeper) GetChainletCount2(ctx sdk.Context) uint64 {
 	return binary.BigEndian.Uint64(bz)
 }
 
-// use in BillAndRestartChainlet - can be removed if refactor the method
-func (k *Keeper) IsChainletStarted(ctx sdk.Context, chainId string) (bool, error) {
-	c, err := k.GetChainletInfo(ctx, chainId)
-	if err != nil {
-		return false, err
-	}
-
-	if c.Status == types.Status_STATUS_ONLINE {
-		return true, nil
-	}
-	return false, nil
-}
-
-// use in BillAndRestartChainlet - can be removed if refactor the method
 func (k *Keeper) StartExistingChainlet(ctx sdk.Context, chainId string) error {
-	c, err := k.GetChainletInfo(ctx, chainId)
+	c, err := k.Chainlet(ctx, chainId)
 	if err != nil {
 		return fmt.Errorf("cannot start existing chainlet %s: %v", chainId, err)
 	}
@@ -136,29 +121,8 @@ func (k *Keeper) StartExistingChainlet(ctx sdk.Context, chainId string) error {
 	return nil
 }
 
-// use in BillAndRestartChainlet - can be removed if refactor the method
-func (k *Keeper) GetChainletStackInfo(ctx sdk.Context, chainId string) (*types.ChainletStack, error) {
-	c, err := k.GetChainletInfo(ctx, chainId)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get the chainlet stack store
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
-	byteKey := []byte(c.ChainletStackName)
-
-	if !store.Has(byteKey) {
-		return nil, cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "chainlet stack with name %s not found", c.ChainletStackName)
-	}
-	var stack types.ChainletStack
-	storeChainletStackData := store.Get(byteKey)
-	k.cdc.MustUnmarshal(storeChainletStackData, &stack)
-
-	return &stack, nil
-}
-
 func (k *Keeper) StopChainlet(ctx sdk.Context, chainId string) error {
-	c, err := k.GetChainletInfo(ctx, chainId)
+	c, err := k.Chainlet(ctx, chainId)
 	if err != nil {
 		return fmt.Errorf("cannot stop chainlet %s: %v", chainId, err)
 	}
@@ -166,21 +130,4 @@ func (k *Keeper) StopChainlet(ctx sdk.Context, chainId string) error {
 	k.setChainletInfo(ctx, c)
 	ctx.Logger().Info(fmt.Sprintf("Successfully stopped chainlet %s", chainId))
 	return nil
-}
-
-// replace it with method Chainlet(ctx sdk.Context, chainId string) (types.Chainlet, error)
-func (k *Keeper) GetChainletInfo(ctx sdk.Context, chainId string) (*types.Chainlet, error) {
-	// Get the store
-	lcStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
-	byteLCKey := []byte(chainId)
-
-	if !lcStore.Has(byteLCKey) {
-		return nil, fmt.Errorf("cannot get info for chainlet %s", chainId)
-	}
-
-	var c types.Chainlet
-
-	storeData := lcStore.Get(byteLCKey)
-	k.cdc.MustUnmarshal(storeData, &c)
-	return &c, nil
 }
