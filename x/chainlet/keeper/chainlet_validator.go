@@ -36,15 +36,7 @@ func (f ChainletActionsValidator) ValidateChainletLaunch(ctx sdk.Context, ch typ
 		return cosmossdkerrors.Wrapf(types.ErrChainletExists, "chainlet with chainId %s already exists", ch.ChainId)
 	}
 
-	avail, err := f.chainletStackVersionAvailable(ctx, ch.ChainletStackName, ch.ChainletStackVersion)
-	if err != nil {
-		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "cannot use stack %s version %s: %s", ch.ChainletStackName, ch.ChainletStackVersion, err)
-	}
-	if !avail {
-		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "stack %s version %s not available", ch.ChainletStackName, ch.ChainletStackVersion)
-	}
-
-	return nil
+	return f.chainletStackVersionAvailable(ctx, ch.ChainletStackName, ch.ChainletStackVersion)
 }
 
 func (f ChainletActionsValidator) ValidateChainletUpdate(ctx sdk.Context, ogChainlet types.Chainlet, creator, stackVersion string) error {
@@ -60,20 +52,13 @@ func (f ChainletActionsValidator) ValidateChainletUpdate(ctx sdk.Context, ogChai
 		return errors.New("major upgrades not implemented")
 	}
 
-	avail, err := f.chainletStackVersionAvailable(ctx, ogChainlet.ChainletStackName, stackVersion)
-	if err != nil {
-		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "cannot upgrade to stack %s version %s: %s", ogChainlet.ChainletStackName, stackVersion, err)
-	}
-	if !avail {
-		return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "stack %s version %s not available", ogChainlet.ChainletStackName, ogChainlet.ChainletStackVersion)
-	}
-	return nil
+	return f.chainletStackVersionAvailable(ctx, ogChainlet.ChainletStackName, stackVersion)
 }
 
-func (f ChainletActionsValidator) chainletStackVersionAvailable(ctx sdk.Context, name, version string) (bool, error) {
+func (f ChainletActionsValidator) chainletStackVersionAvailable(ctx sdk.Context, name, version string) error {
 	stack, err := f.chainletStackRepo.getChainletStack(ctx, name)
 	if err != nil {
-		return false, fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
+		return fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
 	}
 
 	for _, v := range stack.Versions {
@@ -81,10 +66,11 @@ func (f ChainletActionsValidator) chainletStackVersionAvailable(ctx sdk.Context,
 			continue
 		}
 		if !v.Enabled {
-			return false, nil
+			return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "stack %s version %s not available", name, version)
 		}
-		return true, nil
+		return nil
 	}
 
-	return false, fmt.Errorf("stack version %s is not found", version)
+	return cosmossdkerrors.Wrapf(types.ErrInvalidChainletStack, "cannot upgrade to stack %s version %s. Version is not found", name, version)
+
 }
