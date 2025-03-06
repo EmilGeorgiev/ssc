@@ -16,7 +16,7 @@ func (k msgServer) SetPeers(goCtx context.Context, msg *types.MsgSetPeers) (resp
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_, err = k.chainletKeeper.Chainlet(ctx, msg.ChainId)
+	_, err = k.chainletKeeper.FetchChainlet(ctx, msg.ChainId)
 	if err != nil {
 		err = errors.New("no such chain ID")
 		return

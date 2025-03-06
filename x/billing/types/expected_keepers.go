@@ -54,7 +54,7 @@ type ChainletKeeper interface {
 	ListChainlets(ctx context.Context, req *chainlettypes.QueryListChainletsRequest) (*chainlettypes.QueryListChainletsResponse, error)
 	ListChainletStack(ctx context.Context, req *chainlettypes.QueryListChainletStackRequest) (*chainlettypes.QueryListChainletStackResponse, error)
 	StopChainlet(ctx sdk.Context, chainId string) error
-	Chainlet(ctx sdk.Context, chainID string) (chainlettypes.Chainlet, error)
+	FetchChainlet(ctx sdk.Context, chainID string) (chainlettypes.Chainlet, error)
 	StartExistingChainlet(ctx sdk.Context, chainId string) error
 	GetChainletStackInfo(ctx sdk.Context, stackName string) (chainlettypes.ChainletStack, error)
 	GetParams(ctx sdk.Context) chainlettypes.Params

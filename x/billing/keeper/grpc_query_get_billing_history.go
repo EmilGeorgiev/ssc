@@ -23,7 +23,7 @@ func (k Keeper) GetBillingHistory(goCtx context.Context, req *types.QueryGetBill
 
 	var bh []*types.BillingHistory
 
-	chainlet, err := k.chainletkeeper.Chainlet(ctx, req.ChainId)
+	chainlet, err := k.chainletkeeper.FetchChainlet(ctx, req.ChainId)
 	if err != nil {
 		return nil, fmt.Errorf("could not retrieve chainlet info for chain %s. Error: %v", req.ChainId, err)
 	}

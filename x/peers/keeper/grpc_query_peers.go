@@ -19,7 +19,7 @@ func (k Keeper) Peers(goCtx context.Context, req *types.QueryPeersRequest) (resp
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Requesting a non-existing chain ID is different than having an empty peer list
-	_, err = k.chainletKeeper.Chainlet(ctx, req.ChainId)
+	_, err = k.chainletKeeper.FetchChainlet(ctx, req.ChainId)
 	if err != nil {
 		err = errors.New("no such chain ID")
 		return

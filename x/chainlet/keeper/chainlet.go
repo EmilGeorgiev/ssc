@@ -9,7 +9,7 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k *Keeper) Chainlet(ctx sdk.Context, chainId string) (chainlet types.Chainlet, err error) {
+func (k *Keeper) FetchChainlet(ctx sdk.Context, chainId string) (chainlet types.Chainlet, err error) {
 	byteKey := []byte(chainId)
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
@@ -110,7 +110,7 @@ func (k *Keeper) GetChainletCount2(ctx sdk.Context) uint64 {
 }
 
 func (k *Keeper) StartExistingChainlet(ctx sdk.Context, chainId string) error {
-	c, err := k.Chainlet(ctx, chainId)
+	c, err := k.FetchChainlet(ctx, chainId)
 	if err != nil {
 		return fmt.Errorf("cannot start existing chainlet %s: %v", chainId, err)
 	}
@@ -122,7 +122,7 @@ func (k *Keeper) StartExistingChainlet(ctx sdk.Context, chainId string) error {
 }
 
 func (k *Keeper) StopChainlet(ctx sdk.Context, chainId string) error {
-	c, err := k.Chainlet(ctx, chainId)
+	c, err := k.FetchChainlet(ctx, chainId)
 	if err != nil {
 		return fmt.Errorf("cannot stop chainlet %s: %v", chainId, err)
 	}

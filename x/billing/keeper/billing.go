@@ -108,7 +108,7 @@ func (k Keeper) GetChainletBillingHistory(ctx sdk.Context, chainId string) ([]*t
 		return nil, cosmossdkerrors.Wrapf(types.ErrNoRecords, "no billing history found for chain %s", chainId)
 	}
 
-	chainlet, err := k.chainletkeeper.Chainlet(ctx, chainId)
+	chainlet, err := k.chainletkeeper.FetchChainlet(ctx, chainId)
 	if err != nil {
 		return nil, cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not retrieve chainlet info for chain %s. Error: %v", chainId, err)
 	}
@@ -175,7 +175,7 @@ func (k Keeper) GetKprValidatorPayoutHistory(ctx sdk.Context, validatorAddress s
 }
 
 func (k Keeper) BillAndRestartChainlet(ctx sdk.Context, chainId string) error {
-	chainlet, err := k.chainletkeeper.Chainlet(ctx, chainId)
+	chainlet, err := k.chainletkeeper.FetchChainlet(ctx, chainId)
 	if err != nil {
 		return err
 	}

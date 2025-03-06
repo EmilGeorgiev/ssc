@@ -21,7 +21,7 @@ func (k *Keeper) GetChainlet(goCtx context.Context, req *types.QueryGetChainletR
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	chainlet, err := k.Chainlet(ctx, req.ChainId)
+	chainlet, err := k.FetchChainlet(ctx, req.ChainId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}

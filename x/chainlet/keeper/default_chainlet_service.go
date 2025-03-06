@@ -26,7 +26,7 @@ type AccountService interface {
 
 type ChainletRepository interface {
 	GetChainletCount2(ctx sdk.Context) uint64
-	Chainlet(ctx sdk.Context, chainId string) (chainlet types.Chainlet, err error)
+	FetchChainlet(ctx sdk.Context, chainId string) (chainlet types.Chainlet, err error)
 	Create(sdk.Context, types.Chainlet) error
 	setChainletInfo(ctx sdk.Context, chainlet types.Chainlet)
 }
@@ -122,7 +122,7 @@ func (c DefaultChainletService) LaunchChainlet(ctx sdk.Context, chainlet types.C
 		return types.ErrTooManyChainlets
 	}
 
-	if _, err := c.repo.Chainlet(ctx, chainlet.ChainId); err == nil {
+	if _, err := c.repo.FetchChainlet(ctx, chainlet.ChainId); err == nil {
 		return cosmossdkerrors.Wrapf(types.ErrChainletExists, "chainlet with chainId %s already exists", chainlet.ChainId)
 	}
 
@@ -147,7 +147,7 @@ func (c DefaultChainletService) LaunchChainlet(ctx sdk.Context, chainlet types.C
 }
 
 func (c DefaultChainletService) UpdateChainletVersion(ctx sdk.Context, chainId, creator, stackVersion string) error {
-	chainlet, err := c.repo.Chainlet(ctx, chainId)
+	chainlet, err := c.repo.FetchChainlet(ctx, chainId)
 	if err != nil {
 		return err
 	}

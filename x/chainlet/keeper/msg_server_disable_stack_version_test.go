@@ -157,7 +157,7 @@ func (s *TestSuite) TestDisabledVersionAutoUpgrade() {
 			// Check it with a chainlet auto-upgrade
 			err = s.chainletKeeper.AutoUpgradeChainlets(s.ctx)
 			s.Require().NoError(err)
-			chainlet, err := s.chainletKeeper.Chainlet(s.ctx, chainId)
+			chainlet, err := s.chainletKeeper.FetchChainlet(s.ctx, chainId)
 			s.Require().NoError(err)
 			s.Require().Equal(tt.expectedLatest, chainlet.ChainletStackVersion)
 		})

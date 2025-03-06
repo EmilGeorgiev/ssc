@@ -405,19 +405,19 @@ func (m *MockChainletKeeper) EXPECT() *MockChainletKeeperMockRecorder {
 	return m.recorder
 }
 
-// Chainlet mocks base method.
-func (m *MockChainletKeeper) Chainlet(ctx types.Context, chainID string) (types2.Chainlet, error) {
+// FetchChainlet mocks base method.
+func (m *MockChainletKeeper) FetchChainlet(ctx types.Context, chainID string) (types2.Chainlet, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Chainlet", ctx, chainID)
+	ret := m.ctrl.Call(m, "FetchChainlet", ctx, chainID)
 	ret0, _ := ret[0].(types2.Chainlet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Chainlet indicates an expected call of Chainlet.
-func (mr *MockChainletKeeperMockRecorder) Chainlet(ctx, chainID interface{}) *gomock.Call {
+// FetchChainlet indicates an expected call of FetchChainlet.
+func (mr *MockChainletKeeperMockRecorder) FetchChainlet(ctx, chainID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chainlet", reflect.TypeOf((*MockChainletKeeper)(nil).Chainlet), ctx, chainID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchChainlet", reflect.TypeOf((*MockChainletKeeper)(nil).FetchChainlet), ctx, chainID)
 }
 
 // GetChainletStackInfo mocks base method.
