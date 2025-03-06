@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"cosmossdk.io/store/prefix"
-	"encoding/binary"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/sagaxyz/ssc/x/chainlet/types"
@@ -16,41 +15,28 @@ import (
 var _ types.QueryServer = &Keeper{}
 
 func (k *Keeper) GetChainlet(goCtx context.Context, req *types.QueryGetChainletRequest) (*types.QueryGetChainletResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
 	chainlet, err := k.FetchChainlet(ctx, req.ChainId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	return &types.QueryGetChainletResponse{
-		Chainlet: chainlet,
-	}, nil
+	return &types.QueryGetChainletResponse{Chainlet: chainlet}, nil
 }
 
 func (k *Keeper) GetChainletCount(goCtx context.Context, req *types.QueryGetChainletCountRequest) (*types.QueryGetChainletCountResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.NumChainletsKey)
-	ctx.Logger().Info("GetChainletCount", "count", binary.BigEndian.Uint64(bz))
-	return &types.QueryGetChainletCountResponse{Count: binary.BigEndian.Uint64(bz)}, nil
+	bz := k.FetchChainletCount(ctx)
+	ctx.Logger().Info("GetChainletCount", "count", bz)
+	return &types.QueryGetChainletCountResponse{Count: bz}, nil
 }
 
 func (k *Keeper) GetChainletStack(goCtx context.Context, req *types.QueryGetChainletStackRequest) (*types.QueryGetChainletStackResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
 	if req.DisplayName == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	stack, err := k.FetchChainletStack(ctx, req.DisplayName)
+	stack, err := k.FetchChainletStack(sdk.UnwrapSDKContext(goCtx), req.DisplayName)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "TODO") //TODO
 	}
@@ -65,11 +51,8 @@ func (k *Keeper) ListChainletStack(goCtx context.Context, req *types.QueryListCh
 	}
 
 	var chainletStacks []*types.ChainletStack
-	var err error
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.ChainletStackKey))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var chainletStack types.ChainletStack
 		if err := k.cdc.Unmarshal(value, &chainletStack); err != nil {
@@ -92,10 +75,7 @@ func (k *Keeper) ListChainlets(goCtx context.Context, req *types.QueryListChainl
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
 	var chainlets []*types.Chainlet
-	var err error
-
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletKey)
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var chainlet types.Chainlet
@@ -114,10 +94,6 @@ func (k *Keeper) ListChainlets(goCtx context.Context, req *types.QueryListChainl
 }
 
 func (k *Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
 	ctx := sdk.UnwrapSDKContext(c)
-
 	return &types.QueryParamsResponse{Params: k.GetParams(ctx)}, nil
 }
