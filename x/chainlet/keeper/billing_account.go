@@ -25,7 +25,7 @@ func NewDefaultBillingAccount(r ChainletStackRepository, ek types.EscrowKeeper, 
 }
 
 func (b DefaultBillingAccount) CreateNewAccount(ctx sdk.Context, chainlet types.Chainlet, p types.Params) (acc Account, err error) {
-	stack, err := b.repo.GetChainletStackInfo(ctx, chainlet.ChainletStackName)
+	stack, err := b.repo.FetchChainletStack(ctx, chainlet.ChainletStackName)
 	if err != nil {
 		err = types.ErrInvalidChainletStack
 		return

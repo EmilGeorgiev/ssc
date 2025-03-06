@@ -56,6 +56,6 @@ type ChainletKeeper interface {
 	StopChainlet(ctx sdk.Context, chainId string) error
 	FetchChainlet(ctx sdk.Context, chainID string) (chainlettypes.Chainlet, error)
 	StartExistingChainlet(ctx sdk.Context, chainId string) error
-	GetChainletStackInfo(ctx sdk.Context, stackName string) (chainlettypes.ChainletStack, error)
+	FetchChainletStack(ctx sdk.Context, stackName string) (chainlettypes.ChainletStack, error)
 	GetParams(ctx sdk.Context) chainlettypes.Params
 }

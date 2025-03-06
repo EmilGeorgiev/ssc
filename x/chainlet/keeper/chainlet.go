@@ -102,7 +102,7 @@ func (k *Keeper) Create(ctx sdk.Context, chainlet types.Chainlet) error {
 	return nil
 }
 
-func (k *Keeper) GetChainletCount2(ctx sdk.Context) uint64 {
+func (k *Keeper) FetchChainletCount(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NumChainletsKey)
 	ctx.Logger().Info("GetChainletCount", "count", binary.BigEndian.Uint64(bz))

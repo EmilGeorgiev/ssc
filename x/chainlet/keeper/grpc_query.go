@@ -50,7 +50,7 @@ func (k *Keeper) GetChainletStack(goCtx context.Context, req *types.QueryGetChai
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	stack, err := k.GetChainletStackInfo(ctx, req.DisplayName)
+	stack, err := k.FetchChainletStack(ctx, req.DisplayName)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "TODO") //TODO
 	}

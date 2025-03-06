@@ -183,7 +183,7 @@ func (k Keeper) BillAndRestartChainlet(ctx sdk.Context, chainId string) error {
 		return nil
 	}
 
-	stack, err := k.chainletkeeper.GetChainletStackInfo(ctx, chainlet.ChainletStackName)
+	stack, err := k.chainletkeeper.FetchChainletStack(ctx, chainlet.ChainletStackName)
 	if err != nil {
 		return err
 	}

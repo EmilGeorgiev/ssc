@@ -8,27 +8,7 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version string) error {
-	stack, err := k.GetChainletStackInfo(ctx, name)
-	if err != nil {
-		return fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
-	}
-
-	//TODO avoid loop
-	for _, v := range stack.Versions {
-		if v.Version != version {
-			continue
-		}
-		if !v.Enabled {
-			return fmt.Errorf("stack version %s is disabled", version)
-		}
-		return nil
-	}
-
-	return fmt.Errorf("stack version %s is not found", version)
-}
-
-func (k *Keeper) GetChainletStackInfo(ctx sdk.Context, name string) (stack types.ChainletStack, err error) {
+func (k *Keeper) FetchChainletStack(ctx sdk.Context, name string) (stack types.ChainletStack, err error) {
 	byteKey := []byte(name)
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletStackKey)
@@ -62,7 +42,7 @@ func (k *Keeper) CreateChainletStack(ctx sdk.Context, cs types.ChainletStack) er
 	return nil
 }
 
-func (k *Keeper) AddChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version types.ChainletStackParams) error {
+func (k *Keeper) AddChainletStackVersion(ctx sdk.Context, stack types.ChainletStack, version types.ChainletStackParams) error {
 	// Store in the version tree for automatic updates
 	if version.Enabled {
 		err := k.AddVersion(ctx, stack.DisplayName, version.Version)
@@ -77,7 +57,7 @@ func (k *Keeper) AddChainletStackVersion2(ctx sdk.Context, stack types.ChainletS
 	return nil
 }
 
-func (k *Keeper) DisableChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version string) error {
+func (k *Keeper) DisableChainletStackVersion(ctx sdk.Context, stack types.ChainletStack, version string) error {
 	err := k.RemoveVersion(ctx, stack.DisplayName, version)
 	if err != nil {
 		return err
@@ -87,4 +67,24 @@ func (k *Keeper) DisableChainletStackVersion2(ctx sdk.Context, stack types.Chain
 	updatedValue := k.cdc.MustMarshal(&stack)
 	store.Set([]byte(stack.DisplayName), updatedValue)
 	return nil
+}
+
+func (k *Keeper) chainletStackVersionAvailable(ctx sdk.Context, name, version string) error {
+	stack, err := k.FetchChainletStack(ctx, name)
+	if err != nil {
+		return fmt.Errorf("cannot get chainlet stack with name %s: %w", name, err)
+	}
+
+	//TODO avoid loop
+	for _, v := range stack.Versions {
+		if v.Version != version {
+			continue
+		}
+		if !v.Enabled {
+			return fmt.Errorf("stack version %s is disabled", version)
+		}
+		return nil
+	}
+
+	return fmt.Errorf("stack version %s is not found", version)
 }

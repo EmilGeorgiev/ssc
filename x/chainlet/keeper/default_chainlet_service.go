@@ -25,18 +25,18 @@ type AccountService interface {
 }
 
 type ChainletRepository interface {
-	GetChainletCount2(ctx sdk.Context) uint64
+	FetchChainletCount(ctx sdk.Context) uint64
 	FetchChainlet(ctx sdk.Context, chainId string) (chainlet types.Chainlet, err error)
 	Create(sdk.Context, types.Chainlet) error
 	setChainletInfo(ctx sdk.Context, chainlet types.Chainlet)
 }
 
 type ChainletStackRepository interface {
-	GetChainletStackInfo(ctx sdk.Context, name string) (stack types.ChainletStack, err error)
+	FetchChainletStack(ctx sdk.Context, name string) (stack types.ChainletStack, err error)
 	chainletStackVersionAvailable(ctx sdk.Context, name, version string) error
 	CreateChainletStack(ctx sdk.Context, cs types.ChainletStack) error
-	DisableChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version string) error
-	AddChainletStackVersion2(ctx sdk.Context, stack types.ChainletStack, version types.ChainletStackParams) error
+	DisableChainletStackVersion(ctx sdk.Context, stack types.ChainletStack, version string) error
+	AddChainletStackVersion(ctx sdk.Context, stack types.ChainletStack, version types.ChainletStackParams) error
 }
 
 type DefaultChainletService struct {
@@ -63,7 +63,7 @@ func (c DefaultChainletService) CreateChainletStack(ctx sdk.Context, stack types
 		}
 	}
 
-	if _, err := c.stackRepo.GetChainletStackInfo(ctx, stack.DisplayName); err == nil {
+	if _, err := c.stackRepo.FetchChainletStack(ctx, stack.DisplayName); err == nil {
 		return fmt.Errorf("cannot add chainlet stack %v as it already exists", stack.DisplayName)
 	}
 
@@ -71,7 +71,7 @@ func (c DefaultChainletService) CreateChainletStack(ctx sdk.Context, stack types
 }
 
 func (c DefaultChainletService) AddChainletStackVersion(ctx sdk.Context, stackName string, version types.ChainletStackParams) error {
-	stack, err := c.stackRepo.GetChainletStackInfo(ctx, stackName)
+	stack, err := c.stackRepo.FetchChainletStack(ctx, stackName)
 	if err != nil {
 		return fmt.Errorf("cannot get chainlet stack %s: %w", stackName, err)
 	}
@@ -87,11 +87,11 @@ func (c DefaultChainletService) AddChainletStackVersion(ctx sdk.Context, stackNa
 	}
 
 	stack.Versions = append(stack.Versions, version)
-	return c.stackRepo.AddChainletStackVersion2(ctx, stack, version)
+	return c.stackRepo.AddChainletStackVersion(ctx, stack, version)
 }
 
 func (c DefaultChainletService) DisableChainletStackVersion(ctx sdk.Context, dchsv DisableChainletStackVersion) error {
-	stack, err := c.stackRepo.GetChainletStackInfo(ctx, dchsv.DisplayName)
+	stack, err := c.stackRepo.FetchChainletStack(ctx, dchsv.DisplayName)
 	if err != nil {
 		return fmt.Errorf("cannot get chainlet stack %s: %w", dchsv.DisplayName, err)
 	}
@@ -113,11 +113,11 @@ func (c DefaultChainletService) DisableChainletStackVersion(ctx sdk.Context, dch
 		return fmt.Errorf("cannot find chainlet stack %s version %s", dchsv.DisplayName, dchsv.Version)
 	}
 
-	return c.stackRepo.DisableChainletStackVersion2(ctx, stack, dchsv.Version)
+	return c.stackRepo.DisableChainletStackVersion(ctx, stack, dchsv.Version)
 }
 
 func (c DefaultChainletService) LaunchChainlet(ctx sdk.Context, chainlet types.Chainlet, p types.Params) error {
-	numberOfChainlets := c.repo.GetChainletCount2(ctx)
+	numberOfChainlets := c.repo.FetchChainletCount(ctx)
 	if numberOfChainlets >= p.MaxChainlets {
 		return types.ErrTooManyChainlets
 	}
