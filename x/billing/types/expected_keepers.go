@@ -2,7 +2,6 @@ package types
 
 import (
 	context "context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -57,6 +56,6 @@ type ChainletKeeper interface {
 	StopChainlet(ctx sdk.Context, chainId string) error
 	Chainlet(ctx sdk.Context, chainID string) (chainlettypes.Chainlet, error)
 	StartExistingChainlet(ctx sdk.Context, chainId string) error
-	GetChainletStackInfo(ctx sdk.Context, stackName string) (*chainlettypes.ChainletStack, error)
+	GetChainletStackInfo(ctx sdk.Context, stackName string) (chainlettypes.ChainletStack, error)
 	GetParams(ctx sdk.Context) chainlettypes.Params
 }

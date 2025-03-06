@@ -421,10 +421,10 @@ func (mr *MockChainletKeeperMockRecorder) Chainlet(ctx, chainID interface{}) *go
 }
 
 // GetChainletStackInfo mocks base method.
-func (m *MockChainletKeeper) GetChainletStackInfo(ctx types.Context, stackName string) (*types2.ChainletStack, error) {
+func (m *MockChainletKeeper) GetChainletStackInfo(ctx types.Context, stackName string) (types2.ChainletStack, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChainletStackInfo", ctx, stackName)
-	ret0, _ := ret[0].(*types2.ChainletStack)
+	ret0, _ := ret[0].(types2.ChainletStack)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
