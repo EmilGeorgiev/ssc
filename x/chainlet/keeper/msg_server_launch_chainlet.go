@@ -11,6 +11,20 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
+// LaunchChainlet initiates the launch process for a new chainlet.
+// Before launching the chainlet, it computes the required deposit for launching
+// the chainlet using the epoch fee and create a new chainlet account with this deposit.
+// The new chainlet account is charged immediately, which transfer the calculated fees to the
+// appropriate billing module.
+//
+// Registers the chainlet as a consumer in the cross-chain validation (CCV) system,
+// which includes adding it as a consumer and handling the initial Validator Set
+// Change (VSC) packet.
+//
+// If a chainlet with the given ChainId already exist, the method will return an error.
+//
+// Finally, registers the chainlet within the system and emits an event indicating that the chainlet
+// has been successfully launched.
 func (k msgServer) LaunchChainlet(goCtx context.Context, msg *types.MsgLaunchChainlet) (*types.MsgLaunchChainletResponse, error) {
 	err := msg.ValidateBasic()
 	if err != nil {

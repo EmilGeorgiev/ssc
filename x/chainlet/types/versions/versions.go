@@ -1,3 +1,6 @@
+// Package versions provides a hierarchical tree structure to store semantic version numbers.
+// The versions are stored in an N-ary tree (major → minor → patch) so that version-related queries,
+// such as finding the latest compatible version, can be performed quickly and efficiently.
 package versions
 
 import (
@@ -5,17 +8,27 @@ import (
 	"sort"
 )
 
-// A node in an N-ary tree where children are sorted by the value
+// V represents a node in an N-ary tree for version components (major, minor, patch).
+// The tree structure lets you store versions in a sorted, hierarchical manner (major → minor → patch)
+// so that version-related queries (like finding the latest compatible version) are fast and straightforward.
 type V struct {
+	// Value represents the version number at this node (e.g. major, minor, or patch version).
 	Value uint16
-	M     map[uint16]int
-	Sub   []V
+
+	// M maps a child node's value to its index in Sub.
+	M map[uint16]int
+
+	// Sub contains the child nodes which are sorted by Value.
+	Sub []V
 }
 
+// leaf returns true if the node has no children.
 func (v *V) leaf() bool {
 	return len(v.Sub) == 0
 }
 
+// Insert adds a version path represented by a slice of uint16 values (e.g. [major, minor, patch]) into the tree.
+// It recursively traverses or creates nodes corresponding to each value.
 func (v *V) Insert(values []uint16) {
 	if len(values) == 0 {
 		return
@@ -63,6 +76,7 @@ func (v *V) Remove(values []uint16) {
 	}
 }
 
+// Export traverses the tree and exports all stored version numbers as strings.
 func (v *V) Export() (values []string) {
 	values = []string{}
 	for _, sub := range v.Sub {
@@ -79,10 +93,14 @@ func (v *V) Export() (values []string) {
 	return
 }
 
+// Versions holds the root of the version tree. It caches the hierarchical structure
+// of versions for quick lookups and manipulations.
 type Versions struct {
 	Tree *V
 }
 
+// New creates and returns a new Versions instance with an initialized root node.
+// The root node's Value is set to 0 and is not used to represent a real version.
 func New() *Versions {
 	return &Versions{
 		Tree: &V{
@@ -92,7 +110,9 @@ func New() *Versions {
 	}
 }
 
-// Stores a version
+// Add stores a version string (e.g., "1.2.3") into the version tree.
+// It parses the version and inserts the major, minor, and patch values into the tree.
+// If a suffix is present, the function currently does nothing.
 func (sv *Versions) Add(version string) error {
 	major, minor, patch, suffix, err := Parse(version)
 	if err != nil {
@@ -108,7 +128,9 @@ func (sv *Versions) Add(version string) error {
 	return nil
 }
 
-// Removes a version
+// Remove deletes a version string (e.g., "1.2.3") from the version tree.
+// It parses the version and removes the corresponding node path from the tree.
+// Versions with a suffix are not implemented.
 func (sv *Versions) Remove(version string) error {
 	major, minor, patch, suffix, err := Parse(version)
 	if err != nil {
@@ -129,11 +151,14 @@ func (sv *Versions) Export() []string {
 	return sv.Tree.Export()
 }
 
+// Empty returns true if there are no version entries stored in the tree.
 func (sv *Versions) Empty() bool {
 	return len(sv.Tree.Sub) == 0
 }
 
-// For the current versions it returns the latest version that would not trigger a major upgrade.
+// LatestCompatible returns the latest version that would not trigger a major upgrade,
+// based on the provided current version. It finds the most recent minor and patch levels
+// within the same major version (or special handling if the major version is 0).
 func (sv *Versions) LatestCompatible(currentVersion string) (latestVersion string, err error) {
 	latestVersion = currentVersion
 
