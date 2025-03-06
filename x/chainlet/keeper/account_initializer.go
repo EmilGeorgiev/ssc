@@ -10,21 +10,21 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type DefaultBillingAccount struct {
+type AccountInitializer struct {
 	repo          ChainletStackRepository
 	escrowKeeper  types.EscrowKeeper
 	billingKeeper types.BillingKeeper
 }
 
-func NewDefaultBillingAccount(r ChainletStackRepository, ek types.EscrowKeeper, bk types.BillingKeeper) DefaultBillingAccount {
-	return DefaultBillingAccount{
+func NewAccountInitializer(r ChainletStackRepository, ek types.EscrowKeeper, bk types.BillingKeeper) AccountInitializer {
+	return AccountInitializer{
 		repo:          r,
 		escrowKeeper:  ek,
 		billingKeeper: bk,
 	}
 }
 
-func (b DefaultBillingAccount) CreateNewAccount(ctx sdk.Context, chainlet types.Chainlet, p types.Params) (acc Account, err error) {
+func (b AccountInitializer) CreateNewAccount(ctx sdk.Context, chainlet types.Chainlet, p types.Params) (acc Account, err error) {
 	stack, err := b.repo.FetchChainletStack(ctx, chainlet.ChainletStackName)
 	if err != nil {
 		err = types.ErrInvalidChainletStack
@@ -59,13 +59,13 @@ func (b DefaultBillingAccount) CreateNewAccount(ctx sdk.Context, chainlet types.
 
 }
 
-// Account keeps infromation need for creating and billing account. It is used to reduce duplication
+// Account keeps information need for creating and billing account. It is used to reduce duplication
 type Account struct {
 	chainlet types.Chainlet
 	stack    types.ChainletStack
 }
 
-func (b DefaultBillingAccount) BillAccount(ctx sdk.Context, account Account) error {
+func (b AccountInitializer) BillAccount(ctx sdk.Context, account Account) error {
 	epochfee, err := sdk.ParseCoinNormalized(account.stack.Fees.EpochFee)
 	if err != nil {
 		return types.ErrInvalidCoin

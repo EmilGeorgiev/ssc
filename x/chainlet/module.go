@@ -119,7 +119,7 @@ func (am AppModule) IsAppModule()        {}
 // RegisterServices registers a gRPC query service to respond to the module-specific gRPC queries
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 
-	accService := keeper.NewDefaultBillingAccount(am.keeper, am.keeper.GetEscrowKeeper(), am.keeper.GetBillingKeeper())
+	accService := keeper.NewAccountInitializer(am.keeper, am.keeper.GetEscrowKeeper(), am.keeper.GetBillingKeeper())
 	chService := keeper.NewDefaultChainletService(am.keeper, am.keeper, accService, am.keeper)
 
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, chService))
