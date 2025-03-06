@@ -10,8 +10,8 @@ import (
 )
 
 // CreateChainletStack creates a chainlet stack which is essentially a blueprint or template for a chainlet. It contains
-// the configuration and metadata—such as the container image, version, checksum, display name, description, and fee
-// information—that define how a chainlet should be deployed and managed.
+// the configuration and metadata such as the container image, version, checksum, display name, description, and fee
+// information that define how a chainlet should be deployed and managed.
 //
 // When you create a chainlet stack, you’re not immediately launching a live blockchain. Instead, you’re registering the
 // settings and parameters that will be used later to instantiate a chainlet. Think of it as predefining the software

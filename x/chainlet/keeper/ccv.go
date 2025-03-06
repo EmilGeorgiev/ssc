@@ -21,7 +21,7 @@ func (k *Keeper) setPendingVSC(ctx sdk.Context, chainId string) {
 	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingVSC{}))
 }
 
-// addConsumer add a new chainlet as a consumer. It then creates an empty VSC packet (using the current validator set update ID)
+// addConsumer add a new chainlet as a consumer. It creates an empty VSC packet (using the current validator set update ID)
 // and enqueues it for the chainlet. Finally, it marks that the chainlet has a pending VSC packet.
 // This mechanism ensures that the new consumer chain is set up and ready to receive validator set updates.
 func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
