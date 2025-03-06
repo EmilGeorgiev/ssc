@@ -1,21 +1,23 @@
 package keeper
 
 import (
-	cosmossdkerrors "cosmossdk.io/errors"
 	"errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/sagaxyz/ssc/x/chainlet/types"
-	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
 	"slices"
 	"time"
+
+	"github.com/sagaxyz/ssc/x/chainlet/types"
+	"github.com/sagaxyz/ssc/x/chainlet/types/versions"
+
+	cosmossdkerrors "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const SagaAddress = "saga1h8r6gm4jehflfn2nn7mtw53l37skrke5kyax8l"
 
 // CCVConsumerRegisterer register the chainlet as a consumer in CCV
 type CCVConsumerRegisterer interface {
-	RegisterChainletAsConsumerInCCV(ctx sdk.Context, chainId string, spawnTime time.Time) error
+	registerChainletAsConsumerInCCV(ctx sdk.Context, chainId string, spawnTime time.Time) error
 }
 
 // AccountService is responsible for creating and bill a new account when a new chainlet is launched.
@@ -139,7 +141,7 @@ func (c DefaultChainletService) LaunchChainlet(ctx sdk.Context, chainlet types.C
 		return err
 	}
 
-	if err = c.ccvRegisterer.RegisterChainletAsConsumerInCCV(ctx, chainlet.ChainId, chainlet.SpawnTime); err != nil {
+	if err = c.ccvRegisterer.registerChainletAsConsumerInCCV(ctx, chainlet.ChainId, chainlet.SpawnTime); err != nil {
 		return err
 	}
 

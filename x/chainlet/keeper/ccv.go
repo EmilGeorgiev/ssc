@@ -13,7 +13,7 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k *Keeper) RegisterChainletAsConsumerInCCV(ctx sdk.Context, chainId string, spawnTime time.Time) error {
+func (k *Keeper) registerChainletAsConsumerInCCV(ctx sdk.Context, chainId string, spawnTime time.Time) error {
 	revision := ibcclienttypes.ParseChainID(chainId)
 	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.MsgConsumerAddition{
 		ChainId:                           chainId,
