@@ -23,7 +23,7 @@ type CCVConsumerRegisterer interface {
 // AccountService is responsible for creating and bill a new account when a new chainlet is launched.
 type AccountService interface {
 	CreateNewAccount(sdk.Context, types.Chainlet, types.Params) (Account, error)
-	BillAccount(sdk.Context, Account) error
+	//BillAccount(sdk.Context, Account) error
 }
 
 type ChainletRepository interface {
@@ -46,15 +46,17 @@ type DefaultChainletService struct {
 	stackRepo      ChainletStackRepository
 	accountService AccountService
 	ccvRegisterer  CCVConsumerRegisterer
+	accountCharge  AccountCharge
 }
 
 func NewDefaultChainletService(cr ChainletRepository, sr ChainletStackRepository,
-	as AccountService, ccv CCVConsumerRegisterer) DefaultChainletService {
+	as AccountService, ccv CCVConsumerRegisterer, ach AccountCharge) DefaultChainletService {
 	return DefaultChainletService{
 		repo:           cr,
 		stackRepo:      sr,
 		accountService: as,
 		ccvRegisterer:  ccv,
+		accountCharge:  ach,
 	}
 }
 
@@ -137,7 +139,7 @@ func (c DefaultChainletService) LaunchChainlet(ctx sdk.Context, chainlet types.C
 		return err
 	}
 
-	if err = c.accountService.BillAccount(ctx, account); err != nil {
+	if err = c.accountCharge.ApplyTo(ctx, account); err != nil {
 		return err
 	}
 
