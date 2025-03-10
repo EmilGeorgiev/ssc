@@ -7,5 +7,5 @@ import (
 )
 
 type ChainletKeeper interface {
-	Chainlet(ctx sdk.Context, chainId string) (chainlet chainlettypes.Chainlet, err error)
+	FetchChainlet(ctx sdk.Context, chainId string) (chainlet chainlettypes.Chainlet, err error)
 }

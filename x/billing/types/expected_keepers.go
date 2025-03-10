@@ -2,7 +2,6 @@ package types
 
 import (
 	context "context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -55,11 +54,8 @@ type ChainletKeeper interface {
 	ListChainlets(ctx context.Context, req *chainlettypes.QueryListChainletsRequest) (*chainlettypes.QueryListChainletsResponse, error)
 	ListChainletStack(ctx context.Context, req *chainlettypes.QueryListChainletStackRequest) (*chainlettypes.QueryListChainletStackResponse, error)
 	StopChainlet(ctx sdk.Context, chainId string) error
-	GetChainlet(ctx context.Context, req *chainlettypes.QueryGetChainletRequest) (*chainlettypes.QueryGetChainletResponse, error)
-	ChainletExists(ctx sdk.Context, chainId string) bool
+	FetchChainlet(ctx sdk.Context, chainID string) (chainlettypes.Chainlet, error)
 	StartExistingChainlet(ctx sdk.Context, chainId string) error
-	IsChainletStarted(ctx sdk.Context, chainId string) (bool, error)
-	GetChainletStackInfo(ctx sdk.Context, chainId string) (*chainlettypes.ChainletStack, error)
-	GetChainletInfo(ctx sdk.Context, chainId string) (*chainlettypes.Chainlet, error)
+	FetchChainletStack(ctx sdk.Context, stackName string) (chainlettypes.ChainletStack, error)
 	GetParams(ctx sdk.Context) chainlettypes.Params
 }

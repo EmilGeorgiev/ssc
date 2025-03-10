@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	// this line is used by starport scaffolding # 1
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -119,7 +118,12 @@ func (am AppModule) IsAppModule()        {}
 
 // RegisterServices registers a gRPC query service to respond to the module-specific gRPC queries
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+
+	accService := keeper.NewAccountInitializer(am.keeper, am.keeper.GetEscrowKeeper())
+	launchChainletFee := keeper.NewLaunchChainletFee(am.keeper.GetBillingKeeper())
+	chService := keeper.NewDefaultChainletService(am.keeper, am.keeper, accService, am.keeper, launchChainletFee)
+
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, chService))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	//m := keeper.NewMigrator(am.keeper, am.legacySubspace)

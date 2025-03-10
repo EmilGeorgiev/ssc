@@ -106,7 +106,11 @@ func (s *TestSuite) SetupTest() {
 		s.escrowKeeper,
 		s.aclKeeper,
 	)
-	s.msgServer = keeper.NewMsgServerImpl(s.chainletKeeper)
+	accService := keeper.NewAccountInitializer(s.chainletKeeper, s.escrowKeeper)
+	lchFee := keeper.NewLaunchChainletFee(s.billingKeeper)
+	chService := keeper.NewDefaultChainletService(s.chainletKeeper, s.chainletKeeper, accService, s.chainletKeeper, lchFee)
+
+	s.msgServer = keeper.NewMsgServerImpl(s.chainletKeeper, chService)
 
 	s.Require().Equal(s.ctx.Logger().With("module", "x/"+types.ModuleName),
 		s.chainletKeeper.Logger(s.ctx))

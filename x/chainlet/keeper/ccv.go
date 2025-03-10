@@ -13,12 +13,7 @@ import (
 	"github.com/sagaxyz/ssc/x/chainlet/types"
 )
 
-func (k *Keeper) setPendingVSC(ctx sdk.Context, chainId string) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
-	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingVSC{}))
-}
-
-func (k *Keeper) addConsumer(ctx sdk.Context, chainId string, spawnTime time.Time) error {
+func (k *Keeper) registerChainletAsConsumerInCCV(ctx sdk.Context, chainId string, spawnTime time.Time) error {
 	revision := ibcclienttypes.ParseChainID(chainId)
 	err := k.providerKeeper.HandleConsumerAdditionProposal(ctx, &ccvprovidertypes.MsgConsumerAddition{
 		ChainId:                           chainId,
@@ -73,4 +68,9 @@ func (k *Keeper) ForcePendingVSC(ctx sdk.Context) {
 		k.providerKeeper.SendVSCPacketsToChain(ctx, chainId, channelId)
 		defer store.Delete(iterator.Key())
 	}
+}
+
+func (k *Keeper) setPendingVSC(ctx sdk.Context, chainId string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChainletPendingVSCKey)
+	store.Set([]byte(chainId), k.cdc.MustMarshal(&types.PendingVSC{}))
 }

@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/sagaxyz/ssc/x/billing/types"
-	chainlettypes "github.com/sagaxyz/ssc/x/chainlet/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -23,10 +22,8 @@ func (k Keeper) GetBillingHistory(goCtx context.Context, req *types.QueryGetBill
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(fmt.Sprintf("%s-%s", types.BillingHistoryKey, req.ChainId)))
 
 	var bh []*types.BillingHistory
-	// get chainlet info to fill in the details for returning to the user
-	chainletReq := &chainlettypes.QueryGetChainletRequest{ChainId: req.ChainId}
 
-	chainletRes, err := k.chainletkeeper.GetChainlet(ctx, chainletReq)
+	chainlet, err := k.chainletkeeper.FetchChainlet(ctx, req.ChainId)
 	if err != nil {
 		return nil, fmt.Errorf("could not retrieve chainlet info for chain %s. Error: %v", req.ChainId, err)
 	}
@@ -40,9 +37,9 @@ func (k Keeper) GetBillingHistory(goCtx context.Context, req *types.QueryGetBill
 		epochEventStartTime := epochInfo.CurrentEpochStartTime.Add(-time.Duration(epochSince * int64(epochInfo.Duration)))
 		bhr := types.BillingHistory{
 			ChainletId:        sbhr.ChainletId,
-			ChainletName:      chainletRes.Chainlet.ChainletName,
-			ChainletOwner:     chainletRes.Chainlet.Launcher,
-			ChainletStackName: chainletRes.Chainlet.ChainletStackName,
+			ChainletName:      chainlet.ChainletName,
+			ChainletOwner:     chainlet.Launcher,
+			ChainletStackName: chainlet.ChainletStackName,
 			EpochIdentifier:   sbhr.EpochIdentifier,
 			EpochNumber:       sbhr.EpochNumber,
 			EpochStartTime:    epochEventStartTime.Format(time.RFC3339),

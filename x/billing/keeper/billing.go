@@ -108,10 +108,7 @@ func (k Keeper) GetChainletBillingHistory(ctx sdk.Context, chainId string) ([]*t
 		return nil, cosmossdkerrors.Wrapf(types.ErrNoRecords, "no billing history found for chain %s", chainId)
 	}
 
-	// get chainlet info to fill in the details for returning to the user
-	chainletReq := &chainlettypes.QueryGetChainletRequest{ChainId: chainId}
-
-	chainletRes, err := k.chainletkeeper.GetChainlet(ctx, chainletReq)
+	chainlet, err := k.chainletkeeper.FetchChainlet(ctx, chainId)
 	if err != nil {
 		return nil, cosmossdkerrors.Wrapf(types.ErrInternalFailure, "could not retrieve chainlet info for chain %s. Error: %v", chainId, err)
 	}
@@ -125,9 +122,9 @@ func (k Keeper) GetChainletBillingHistory(ctx sdk.Context, chainId string) ([]*t
 		epochEventStartTime := epochInfo.CurrentEpochStartTime.Add(-time.Duration(epochSince * int64(epochInfo.Duration)))
 		bhr := types.BillingHistory{
 			ChainletId:        sbhr.ChainletId,
-			ChainletName:      chainletRes.Chainlet.ChainletName,
-			ChainletOwner:     chainletRes.Chainlet.Launcher,
-			ChainletStackName: chainletRes.Chainlet.ChainletStackName,
+			ChainletName:      chainlet.ChainletName,
+			ChainletOwner:     chainlet.Launcher,
+			ChainletStackName: chainlet.ChainletStackName,
 			EpochIdentifier:   sbhr.EpochIdentifier,
 			EpochNumber:       sbhr.EpochNumber,
 			EpochStartTime:    epochEventStartTime.Format(time.RFC3339),
@@ -178,15 +175,15 @@ func (k Keeper) GetKprValidatorPayoutHistory(ctx sdk.Context, validatorAddress s
 }
 
 func (k Keeper) BillAndRestartChainlet(ctx sdk.Context, chainId string) error {
-	started, err := k.chainletkeeper.IsChainletStarted(ctx, chainId)
+	chainlet, err := k.chainletkeeper.FetchChainlet(ctx, chainId)
 	if err != nil {
 		return err
 	}
-	if started {
+	if chainlet.Status == chainlettypes.Status_STATUS_ONLINE {
 		return nil
 	}
 
-	stack, err := k.chainletkeeper.GetChainletStackInfo(ctx, chainId)
+	stack, err := k.chainletkeeper.FetchChainletStack(ctx, chainlet.ChainletStackName)
 	if err != nil {
 		return err
 	}
@@ -219,13 +216,8 @@ func (k Keeper) BillAndRestartChainlet(ctx sdk.Context, chainId string) error {
 		return nil
 	}
 
-	chainlet, err := k.chainletkeeper.GetChainletInfo(ctx, chainId)
-	if err != nil {
-		return err
-	}
-
 	// Check if there is enough funds to restart the chainlet
-	err = k.BillAccount(ctx, epochfee, *chainlet, "billing", "restarting chainlet")
+	err = k.BillAccount(ctx, epochfee, chainlet, "billing", "restarting chainlet")
 	if err != nil {
 		return cosmossdkerrors.Wrapf(types.ErrInternalBillingFailure, "could not bill account for chainlet %s. Error: %v", chainId, err)
 	}
